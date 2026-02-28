@@ -1,12 +1,116 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from "react";
+import { Play, Pause, RotateCcw, Trophy } from "lucide-react";
+import { BloomdoroLogo } from "@/components/BloomdoroLogo";
+import { TimerRing } from "@/components/TimerRing";
+import { TimerSetup } from "@/components/TimerSetup";
+import { AmbientSounds } from "@/components/AmbientSounds";
+import { SettingsModal } from "@/components/SettingsModal";
+import { MusicPlayer } from "@/components/MusicPlayer";
+import { useTimer } from "@/hooks/useTimer";
 
 const Index = () => {
+  const [phase, setPhase] = useState<"setup" | "timer">("setup");
+  const [sessions, setSessions] = useState(0);
+  const [customMinutes, setCustomMinutes] = useState(25);
+  const [musicUrl, setMusicUrl] = useState<string | null>(null);
+  const [musicName, setMusicName] = useState<string | null>(null);
+  const timer = useTimer(customMinutes);
+
+  const handleStart = useCallback((minutes: number) => {
+    setCustomMinutes(minutes);
+    timer.reset(minutes);
+    setPhase("timer");
+    setTimeout(() => timer.start(), 50);
+  }, [timer]);
+
+  const handleReset = useCallback(() => {
+    timer.reset(customMinutes);
+  }, [timer, customMinutes]);
+
+  const handleBackToSetup = useCallback(() => {
+    timer.reset(customMinutes);
+    setPhase("setup");
+  }, [timer, customMinutes]);
+
+  // Track completed sessions
+  if (timer.status === "complete" && phase === "timer") {
+    setSessions((s) => s + 1);
+    timer.reset(customMinutes);
+    setPhase("setup");
+  }
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 max-w-5xl w-full mx-auto">
+        <BloomdoroLogo />
+        <div className="flex items-center gap-3">
+          <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} />
+          <AmbientSounds />
+          <SettingsModal onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }} />
+        </div>
+      </header>
+
+      {/* Session Counter */}
+      <div className="flex justify-center mt-4">
+        <div className="flex items-center gap-2 px-6 py-3 rounded-full bg-card border border-border shadow-sm">
+          <Trophy className="w-5 h-5 text-primary" />
+          <span className="font-display font-semibold text-foreground">
+            {sessions} Session{sessions !== 1 ? "s" : ""} Completed
+          </span>
+        </div>
       </div>
+
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center px-6 pb-12">
+        {phase === "setup" ? (
+          <TimerSetup onStart={handleStart} />
+        ) : (
+          <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-md w-full">
+            <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
+              Focus Session
+            </span>
+
+            <TimerRing progress={timer.progress} size={280}>
+              <div className="font-display text-6xl font-bold tabular-nums text-foreground tracking-tight">
+                {pad(timer.minutes)}:{pad(timer.seconds)}
+              </div>
+            </TimerRing>
+
+            {timer.status === "idle" && (
+              <p className="text-badge-text text-sm">👆 Click play to start your session!</p>
+            )}
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={timer.toggle}
+                className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg transition-transform hover:scale-105"
+              >
+                {timer.status === "running" ? (
+                  <Pause className="w-6 h-6" />
+                ) : (
+                  <Play className="w-6 h-6 ml-0.5" />
+                )}
+              </button>
+              <button
+                onClick={handleReset}
+                className="w-12 h-12 rounded-full bg-secondary hover:bg-muted text-secondary-foreground flex items-center justify-center transition-colors"
+              >
+                <RotateCcw className="w-5 h-5" />
+              </button>
+            </div>
+
+            <button
+              onClick={handleBackToSetup}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← Change time
+            </button>
+          </div>
+        )}
+      </main>
     </div>
   );
 };
