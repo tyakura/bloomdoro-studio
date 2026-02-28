@@ -2,23 +2,27 @@ import { useState, useCallback } from "react";
 import { Play, Pause, RotateCcw, Trophy } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
-import { TimerSetup } from "@/components/TimerSetup";
+import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
 import { AmbientSounds } from "@/components/AmbientSounds";
 import { SettingsModal } from "@/components/SettingsModal";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useTimer } from "@/hooks/useTimer";
 import { GrowingFlower } from "@/components/GrowingFlower";
+import { GrowingRocket } from "@/components/GrowingRocket";
+import { CompletionScreen } from "@/components/CompletionScreen";
 
 const Index = () => {
-  const [phase, setPhase] = useState<"setup" | "timer">("setup");
+  const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
   const [sessions, setSessions] = useState(0);
   const [customMinutes, setCustomMinutes] = useState(25);
+  const [theme, setTheme] = useState<TimerTheme>("flower");
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
   const timer = useTimer(customMinutes);
 
-  const handleStart = useCallback((minutes: number) => {
+  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme) => {
     setCustomMinutes(minutes);
+    setTheme(selectedTheme);
     timer.reset(minutes);
     setPhase("timer");
     setTimeout(() => timer.start(), 50);
@@ -33,11 +37,16 @@ const Index = () => {
     setPhase("setup");
   }, [timer, customMinutes]);
 
+  const handleReuse = useCallback(() => {
+    timer.reset(customMinutes);
+    setPhase("timer");
+    setTimeout(() => timer.start(), 50);
+  }, [timer, customMinutes]);
+
   // Track completed sessions
   if (timer.status === "complete" && phase === "timer") {
     setSessions((s) => s + 1);
-    timer.reset(customMinutes);
-    setPhase("setup");
+    setPhase("complete");
   }
 
   const pad = (n: number) => n.toString().padStart(2, "0");
@@ -67,24 +76,41 @@ const Index = () => {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-6 pb-12">
         {phase === "setup" ? (
-          <TimerSetup onStart={handleStart} />
+          <TimerSetup onStart={handleStart} defaultTheme={theme} />
+        ) : phase === "complete" ? (
+          <CompletionScreen
+            lastMinutes={customMinutes}
+            onReuse={handleReuse}
+            onChangeTime={() => setPhase("setup")}
+          />
         ) : (
-          <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-md w-full">
+          <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-2xl w-full">
             <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
               Focus Session
             </span>
 
-            <TimerRing progress={timer.progress} size={280}>
-              <div className="flex flex-col items-center gap-1">
-                <GrowingFlower progress={timer.progress} />
-                <div className="font-display text-5xl font-bold tabular-nums text-foreground tracking-tight">
-                  {pad(timer.minutes)}:{pad(timer.seconds)}
+            <div className="flex items-center gap-8 w-full justify-center">
+              {/* Timer Ring with countdown */}
+              <TimerRing progress={timer.progress} size={240}>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="font-display text-5xl font-bold tabular-nums text-foreground tracking-tight">
+                    {pad(timer.minutes)}:{pad(timer.seconds)}
+                  </div>
                 </div>
+              </TimerRing>
+
+              {/* Animation on the right */}
+              <div className="flex-shrink-0">
+                {theme === "flower" ? (
+                  <GrowingFlower progress={timer.progress} />
+                ) : (
+                  <GrowingRocket progress={timer.progress} />
+                )}
               </div>
-            </TimerRing>
+            </div>
 
             {timer.status === "idle" && (
-              <p className="text-badge-text text-sm">👆 Click play to start your session!</p>
+              <p className="text-badge-text text-sm">👆 Klik play untuk memulai sesi!</p>
             )}
 
             <div className="flex items-center gap-4">
@@ -110,7 +136,7 @@ const Index = () => {
               onClick={handleBackToSetup}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              ← Change time
+              ← Ganti waktu
             </button>
           </div>
         )}
