@@ -7,6 +7,7 @@ import { AmbientSounds } from "@/components/AmbientSounds";
 import { SettingsModal } from "@/components/SettingsModal";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useTimer } from "@/hooks/useTimer";
+import { GrowingFlower } from "@/components/GrowingFlower";
 
 const Index = () => {
   const [phase, setPhase] = useState<"setup" | "timer">("setup");
@@ -74,8 +75,11 @@ const Index = () => {
             </span>
 
             <TimerRing progress={timer.progress} size={280}>
-              <div className="font-display text-6xl font-bold tabular-nums text-foreground tracking-tight">
-                {pad(timer.minutes)}:{pad(timer.seconds)}
+              <div className="flex flex-col items-center gap-1">
+                <GrowingFlower progress={timer.progress} />
+                <div className="font-display text-5xl font-bold tabular-nums text-foreground tracking-tight">
+                  {pad(timer.minutes)}:{pad(timer.seconds)}
+                </div>
               </div>
             </TimerRing>
 
