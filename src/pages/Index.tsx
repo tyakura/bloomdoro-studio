@@ -49,6 +49,7 @@ const Index = () => {
 
   // Track completed sessions
   if (timer.status === "complete" && phase === "timer") {
+    musicStopRef.current?.();
     setSessions((s) => s + 1);
     setPhase("complete");
   }
