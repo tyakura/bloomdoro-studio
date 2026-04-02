@@ -21,6 +21,7 @@ const Index = () => {
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
   const [gardenOpen, setGardenOpen] = useState(false);
+  const musicStopRef = useRef<(() => void) | null>(null);
   const timer = useTimer(customMinutes);
 
   const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme) => {
