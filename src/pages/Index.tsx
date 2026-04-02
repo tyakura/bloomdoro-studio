@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Play, Pause, RotateCcw, Trophy, Flower2 } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
@@ -11,6 +11,7 @@ import { GrowingFlower } from "@/components/GrowingFlower";
 import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
+import { StickyNotes } from "@/components/StickyNotes";
 
 const Index = () => {
   const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
@@ -20,6 +21,7 @@ const Index = () => {
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
   const [gardenOpen, setGardenOpen] = useState(false);
+  const musicStopRef = useRef<(() => void) | null>(null);
   const timer = useTimer(customMinutes);
 
   const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme) => {
@@ -47,6 +49,7 @@ const Index = () => {
 
   // Track completed sessions
   if (timer.status === "complete" && phase === "timer") {
+    musicStopRef.current?.();
     setSessions((s) => s + 1);
     setPhase("complete");
   }
@@ -59,7 +62,7 @@ const Index = () => {
       <header className="flex items-center justify-between px-6 py-4 max-w-5xl w-full mx-auto">
         <BloomdoroLogo />
         <div className="flex items-center gap-3">
-          <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} />
+          <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
           <AmbientSounds />
           <button
             onClick={() => setGardenOpen(true)}
@@ -153,6 +156,9 @@ const Index = () => {
 
       {/* Garden Modal */}
       <Garden sessions={sessions} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
+
+      {/* Sticky Notes */}
+      <StickyNotes />
     </div>
   );
 };

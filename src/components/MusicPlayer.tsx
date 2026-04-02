@@ -5,9 +5,10 @@ interface MusicPlayerProps {
   url: string | null;
   name: string | null;
   onClear: () => void;
+  stopRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-export function MusicPlayer({ url, name, onClear }: MusicPlayerProps) {
+export function MusicPlayer({ url, name, onClear, stopRef }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -20,10 +21,16 @@ export function MusicPlayer({ url, name, onClear }: MusicPlayerProps) {
       audioRef.current = audio;
       audio.play().then(() => setIsPlaying(true)).catch(() => {});
     }
+    if (stopRef) {
+      stopRef.current = () => {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+      };
+    }
     return () => {
       audioRef.current?.pause();
     };
-  }, [url]);
+  }, [url, stopRef]);
 
   const togglePlayback = () => {
     if (!audioRef.current) return;
