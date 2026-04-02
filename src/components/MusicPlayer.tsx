@@ -21,10 +21,16 @@ export function MusicPlayer({ url, name, onClear, stopRef }: MusicPlayerProps) {
       audioRef.current = audio;
       audio.play().then(() => setIsPlaying(true)).catch(() => {});
     }
+    if (stopRef) {
+      stopRef.current = () => {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+      };
+    }
     return () => {
       audioRef.current?.pause();
     };
-  }, [url]);
+  }, [url, stopRef]);
 
   const togglePlayback = () => {
     if (!audioRef.current) return;
