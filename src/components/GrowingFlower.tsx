@@ -15,7 +15,7 @@ export function GrowingFlower({ progress }: GrowingFlowerProps) {
   return (
     <svg
       viewBox="0 0 100 100"
-      className="w-40 h-40"
+      className="w-56 h-56"
       style={{ overflow: "visible" }}
     >
       {/* Stem */}
