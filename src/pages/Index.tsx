@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Play, Pause, RotateCcw, Trophy, Flower2 } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
@@ -11,6 +11,7 @@ import { GrowingFlower } from "@/components/GrowingFlower";
 import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
+import { StickyNotes } from "@/components/StickyNotes";
 
 const Index = () => {
   const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
