@@ -7,7 +7,7 @@ interface MusicPlayerProps {
   onClear: () => void;
 }
 
-export function MusicPlayer({ url, name, onClear }: MusicPlayerProps) {
+export function MusicPlayer({ url, name, onClear, stopRef }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
