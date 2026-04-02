@@ -62,7 +62,7 @@ const Index = () => {
       <header className="flex items-center justify-between px-6 py-4 max-w-5xl w-full mx-auto">
         <BloomdoroLogo />
         <div className="flex items-center gap-3">
-          <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} />
+          <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
           <AmbientSounds />
           <button
             onClick={() => setGardenOpen(true)}
