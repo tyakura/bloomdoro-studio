@@ -93,7 +93,7 @@ const Index = () => {
             onChangeTime={() => setPhase("setup")}
           />
         ) : (
-          <div className="flex items-center gap-10 max-w-4xl w-full justify-center">
+          <div className="flex items-center max-w-4xl w-full justify-center" style={{ gap: '120px' }}>
             {/* Timer Card */}
             <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm">
               <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
