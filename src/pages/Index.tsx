@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Play, Pause, RotateCcw, Trophy } from "lucide-react";
+import { Play, Pause, RotateCcw, Trophy, Flower2 } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
@@ -10,6 +10,7 @@ import { useTimer } from "@/hooks/useTimer";
 import { GrowingFlower } from "@/components/GrowingFlower";
 import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
+import { Garden } from "@/components/Garden";
 
 const Index = () => {
   const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
@@ -18,6 +19,7 @@ const Index = () => {
   const [theme, setTheme] = useState<TimerTheme>("flower");
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
+  const [gardenOpen, setGardenOpen] = useState(false);
   const timer = useTimer(customMinutes);
 
   const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme) => {
@@ -59,6 +61,13 @@ const Index = () => {
         <div className="flex items-center gap-3">
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} />
           <AmbientSounds />
+          <button
+            onClick={() => setGardenOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
+          >
+            <Flower2 className="w-4 h-4" />
+            Garden
+          </button>
           <SettingsModal onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }} />
         </div>
       </header>
@@ -84,13 +93,13 @@ const Index = () => {
             onChangeTime={() => setPhase("setup")}
           />
         ) : (
-          <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-2xl w-full">
-            <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
-              Focus Session
-            </span>
+          <div className="flex items-center gap-10 max-w-4xl w-full justify-center">
+            {/* Timer Card */}
+            <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm">
+              <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
+                Focus Session
+              </span>
 
-            <div className="flex items-center gap-8 w-full justify-center">
-              {/* Timer Ring with countdown */}
               <TimerRing progress={timer.progress} size={240}>
                 <div className="flex flex-col items-center gap-1">
                   <div className="font-display text-5xl font-bold tabular-nums text-foreground tracking-tight">
@@ -99,48 +108,51 @@ const Index = () => {
                 </div>
               </TimerRing>
 
-              {/* Animation on the right */}
-              <div className="flex-shrink-0">
-                {theme === "flower" ? (
-                  <GrowingFlower progress={timer.progress} />
-                ) : (
-                  <GrowingRocket progress={timer.progress} />
-                )}
+              {timer.status === "idle" && (
+                <p className="text-badge-text text-sm">👆 Klik play untuk memulai sesi!</p>
+              )}
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={timer.toggle}
+                  className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg transition-transform hover:scale-105"
+                >
+                  {timer.status === "running" ? (
+                    <Pause className="w-6 h-6" />
+                  ) : (
+                    <Play className="w-6 h-6 ml-0.5" />
+                  )}
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="w-12 h-12 rounded-full bg-secondary hover:bg-muted text-secondary-foreground flex items-center justify-center transition-colors"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </button>
               </div>
-            </div>
 
-            {timer.status === "idle" && (
-              <p className="text-badge-text text-sm">👆 Klik play untuk memulai sesi!</p>
-            )}
-
-            <div className="flex items-center gap-4">
               <button
-                onClick={timer.toggle}
-                className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg transition-transform hover:scale-105"
+                onClick={handleBackToSetup}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                {timer.status === "running" ? (
-                  <Pause className="w-6 h-6" />
-                ) : (
-                  <Play className="w-6 h-6 ml-0.5" />
-                )}
-              </button>
-              <button
-                onClick={handleReset}
-                className="w-12 h-12 rounded-full bg-secondary hover:bg-muted text-secondary-foreground flex items-center justify-center transition-colors"
-              >
-                <RotateCcw className="w-5 h-5" />
+                ← Ganti waktu
               </button>
             </div>
 
-            <button
-              onClick={handleBackToSetup}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              ← Ganti waktu
-            </button>
+            {/* Animation outside the card */}
+            <div className="flex-shrink-0">
+              {theme === "flower" ? (
+                <GrowingFlower progress={timer.progress} />
+              ) : (
+                <GrowingRocket progress={timer.progress} />
+              )}
+            </div>
           </div>
         )}
       </main>
+
+      {/* Garden Modal */}
+      <Garden sessions={sessions} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
     </div>
   );
 };
