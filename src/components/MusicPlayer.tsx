@@ -5,6 +5,7 @@ interface MusicPlayerProps {
   url: string | null;
   name: string | null;
   onClear: () => void;
+  stopRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 export function MusicPlayer({ url, name, onClear, stopRef }: MusicPlayerProps) {
