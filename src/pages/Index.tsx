@@ -156,6 +156,9 @@ const Index = () => {
 
       {/* Garden Modal */}
       <Garden sessions={sessions} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
+
+      {/* Sticky Notes */}
+      <StickyNotes />
     </div>
   );
 };
