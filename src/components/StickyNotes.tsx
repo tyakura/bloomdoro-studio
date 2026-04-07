@@ -59,11 +59,12 @@ export function StickyNotes() {
     dragRef.current = { id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
 
     const onMove = (ev: MouseEvent) => {
-      if (!dragRef.current) return;
+      const drag = dragRef.current;
+      if (!drag) return;
       setNotes((prev) =>
         prev.map((n) =>
-          n.id === dragRef.current!.id
-            ? { ...n, x: ev.clientX - dragRef.current!.offsetX, y: ev.clientY - dragRef.current!.offsetY }
+          n.id === drag.id
+            ? { ...n, x: ev.clientX - drag.offsetX, y: ev.clientY - drag.offsetY }
             : n
         )
       );
