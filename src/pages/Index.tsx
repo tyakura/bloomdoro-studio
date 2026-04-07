@@ -58,19 +58,27 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 max-w-5xl w-full mx-auto">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto">
         <BloomdoroLogo />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
-          <AmbientSounds />
-          <button
-            onClick={() => setGardenOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-          >
-            <Flower2 className="w-4 h-4" />
-            Garden
-          </button>
-          <SettingsModal onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }} />
+          {!isMobile && (
+            <>
+              <button
+                onClick={() => setGardenOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
+              >
+                <Flower2 className="w-4 h-4" />
+                Garden
+              </button>
+            </>
+          )}
+          <SettingsModal
+            onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
+            showAmbient={isMobile}
+            showGarden={isMobile}
+            onGardenOpen={() => setGardenOpen(true)}
+          />
         </div>
       </header>
 
