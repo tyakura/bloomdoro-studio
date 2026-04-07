@@ -66,6 +66,7 @@ const Index = () => {
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
           {!isMobile && (
             <>
+              <AmbientSounds />
               <button
                 onClick={() => setGardenOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
