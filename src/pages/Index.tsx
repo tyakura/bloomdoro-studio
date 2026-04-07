@@ -12,7 +12,7 @@ import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
-
+import { useIsMobile } from "@/hooks/use-mobile";
 const Index = () => {
   const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
   const [sessions, setSessions] = useState(0);
@@ -22,6 +22,7 @@ const Index = () => {
   const [musicName, setMusicName] = useState<string | null>(null);
   const [gardenOpen, setGardenOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
+  const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
 
   const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme) => {
@@ -59,19 +60,28 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 max-w-5xl w-full mx-auto">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto">
         <BloomdoroLogo />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
-          <AmbientSounds />
-          <button
-            onClick={() => setGardenOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-          >
-            <Flower2 className="w-4 h-4" />
-            Garden
-          </button>
-          <SettingsModal onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }} />
+          {!isMobile && (
+            <>
+              <AmbientSounds />
+              <button
+                onClick={() => setGardenOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
+              >
+                <Flower2 className="w-4 h-4" />
+                Garden
+              </button>
+            </>
+          )}
+          <SettingsModal
+            onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
+            showAmbient={isMobile}
+            showGarden={isMobile}
+            onGardenOpen={() => setGardenOpen(true)}
+          />
         </div>
       </header>
 
@@ -96,16 +106,27 @@ const Index = () => {
             onChangeTime={() => setPhase("setup")}
           />
         ) : (
-          <div className="flex items-center max-w-4xl w-full justify-center" style={{ gap: '120px' }}>
+          <div className={`flex ${isMobile ? 'flex-col items-center gap-8' : 'flex-row items-center justify-center'}`} style={!isMobile ? { gap: '120px' } : undefined}>
+            {/* Animation on top for mobile */}
+            {isMobile && (
+              <div className="flex-shrink-0">
+                {theme === "flower" ? (
+                  <GrowingFlower progress={timer.progress} />
+                ) : (
+                  <GrowingRocket progress={timer.progress} horizontal />
+                )}
+              </div>
+            )}
+
             {/* Timer Card */}
-            <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm">
+            <div className="flex flex-col items-center gap-6 sm:gap-8 p-6 sm:p-8 rounded-2xl bg-card border border-border shadow-sm">
               <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
                 Focus Session
               </span>
 
-              <TimerRing progress={timer.progress} size={240}>
+              <TimerRing progress={timer.progress} size={isMobile ? 180 : 240}>
                 <div className="flex flex-col items-center gap-1">
-                  <div className="font-display text-5xl font-bold tabular-nums text-foreground tracking-tight">
+                  <div className={`font-display font-bold tabular-nums text-foreground tracking-tight ${isMobile ? 'text-4xl' : 'text-5xl'}`}>
                     {pad(timer.minutes)}:{pad(timer.seconds)}
                   </div>
                 </div>
@@ -142,14 +163,16 @@ const Index = () => {
               </button>
             </div>
 
-            {/* Animation outside the card */}
-            <div className="flex-shrink-0">
-              {theme === "flower" ? (
-                <GrowingFlower progress={timer.progress} />
-              ) : (
-                <GrowingRocket progress={timer.progress} />
-              )}
-            </div>
+            {/* Animation on right for desktop */}
+            {!isMobile && (
+              <div className="flex-shrink-0">
+                {theme === "flower" ? (
+                  <GrowingFlower progress={timer.progress} />
+                ) : (
+                  <GrowingRocket progress={timer.progress} />
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>

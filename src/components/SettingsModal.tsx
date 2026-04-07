@@ -1,16 +1,28 @@
 import { useState, useRef } from "react";
-import { Settings, X, Upload, Link } from "lucide-react";
+import { Settings, X, Upload, Link, Volume2, VolumeX, Flower2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const AMBIENT_SOUNDS = [
+  { id: "rain", label: "🌧️ Rain", url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
+  { id: "fire", label: "🔥 Fire", url: "https://cdn.freesound.org/previews/277/277021_4548252-lq.mp3" },
+  { id: "birds", label: "🐦 Birds", url: "https://cdn.freesound.org/previews/531/531015_6271029-lq.mp3" },
+  { id: "waves", label: "🌊 Waves", url: "https://cdn.freesound.org/previews/467/467539_5765668-lq.mp3" },
+];
+
 interface SettingsModalProps {
   onMusicLoad: (url: string, name: string) => void;
+  showAmbient?: boolean;
+  showGarden?: boolean;
+  onGardenOpen?: () => void;
 }
 
-export function SettingsModal({ onMusicLoad }: SettingsModalProps) {
+export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen }: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeSound, setActiveSound] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -27,6 +39,25 @@ export function SettingsModal({ onMusicLoad }: SettingsModalProps) {
     }
   };
 
+  const toggleSound = (soundId: string) => {
+    if (activeSound === soundId) {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setActiveSound(null);
+    } else {
+      if (audioRef.current) audioRef.current.pause();
+      const sound = AMBIENT_SOUNDS.find((s) => s.id === soundId);
+      if (sound) {
+        const audio = new Audio(sound.url);
+        audio.loop = true;
+        audio.volume = 0.4;
+        audio.play().catch(() => {});
+        audioRef.current = audio;
+        setActiveSound(soundId);
+      }
+    }
+  };
+
   if (!isOpen) {
     return (
       <button
@@ -34,14 +65,14 @@ export function SettingsModal({ onMusicLoad }: SettingsModalProps) {
         className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
       >
         <Settings className="w-4 h-4" />
-        Settings
+        <span className="hidden sm:inline">Settings</span>
       </button>
     );
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
-      <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-md w-full mx-4">
+      <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-display text-xl font-bold text-foreground">Settings</h2>
           <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-foreground">
@@ -50,6 +81,43 @@ export function SettingsModal({ onMusicLoad }: SettingsModalProps) {
         </div>
 
         <div className="space-y-6">
+          {/* Garden button for mobile */}
+          {showGarden && onGardenOpen && (
+            <div>
+              <h3 className="font-display font-semibold text-sm text-foreground mb-3">Garden</h3>
+              <Button
+                onClick={() => { onGardenOpen(); setIsOpen(false); }}
+                variant="outline"
+                className="w-full justify-start gap-2"
+              >
+                <Flower2 className="w-4 h-4" />
+                Open Garden
+              </Button>
+            </div>
+          )}
+
+          {/* Ambient sounds for mobile */}
+          {showAmbient && (
+            <div>
+              <h3 className="font-display font-semibold text-sm text-foreground mb-3">Ambient Sounds</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {AMBIENT_SOUNDS.map((sound) => (
+                  <button
+                    key={sound.id}
+                    onClick={() => toggleSound(sound.id)}
+                    className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors ${
+                      activeSound === sound.id
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    {sound.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">Upload Music from Device</h3>
             <input
