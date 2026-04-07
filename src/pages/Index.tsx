@@ -104,16 +104,27 @@ const Index = () => {
             onChangeTime={() => setPhase("setup")}
           />
         ) : (
-          <div className="flex items-center max-w-4xl w-full justify-center" style={{ gap: '120px' }}>
+          <div className={`flex ${isMobile ? 'flex-col items-center gap-8' : 'flex-row items-center justify-center'}`} style={!isMobile ? { gap: '120px' } : undefined}>
+            {/* Animation on top for mobile */}
+            {isMobile && (
+              <div className="flex-shrink-0">
+                {theme === "flower" ? (
+                  <GrowingFlower progress={timer.progress} />
+                ) : (
+                  <GrowingRocket progress={timer.progress} horizontal />
+                )}
+              </div>
+            )}
+
             {/* Timer Card */}
-            <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm">
+            <div className="flex flex-col items-center gap-6 sm:gap-8 p-6 sm:p-8 rounded-2xl bg-card border border-border shadow-sm">
               <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
                 Focus Session
               </span>
 
-              <TimerRing progress={timer.progress} size={240}>
+              <TimerRing progress={timer.progress} size={isMobile ? 180 : 240}>
                 <div className="flex flex-col items-center gap-1">
-                  <div className="font-display text-5xl font-bold tabular-nums text-foreground tracking-tight">
+                  <div className={`font-display font-bold tabular-nums text-foreground tracking-tight ${isMobile ? 'text-4xl' : 'text-5xl'}`}>
                     {pad(timer.minutes)}:{pad(timer.seconds)}
                   </div>
                 </div>
@@ -150,14 +161,16 @@ const Index = () => {
               </button>
             </div>
 
-            {/* Animation outside the card */}
-            <div className="flex-shrink-0">
-              {theme === "flower" ? (
-                <GrowingFlower progress={timer.progress} />
-              ) : (
-                <GrowingRocket progress={timer.progress} />
-              )}
-            </div>
+            {/* Animation on right for desktop */}
+            {!isMobile && (
+              <div className="flex-shrink-0">
+                {theme === "flower" ? (
+                  <GrowingFlower progress={timer.progress} />
+                ) : (
+                  <GrowingRocket progress={timer.progress} />
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
