@@ -7,12 +7,13 @@ import { AmbientSounds } from "@/components/AmbientSounds";
 import { SettingsModal } from "@/components/SettingsModal";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useTimer } from "@/hooks/useTimer";
-import { GrowingFlower } from "@/components/GrowingFlower";
+import { GrowingFlower, FlowerVariant } from "@/components/GrowingFlower";
 import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 const Index = () => {
   const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
   const [sessions, setSessions] = useState(0);
@@ -21,6 +22,8 @@ const Index = () => {
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
   const [gardenOpen, setGardenOpen] = useState(false);
+  const [gardenFlowers, setGardenFlowers] = useState<FlowerVariant[]>([]);
+  const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
@@ -28,6 +31,7 @@ const Index = () => {
   const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme) => {
     setCustomMinutes(minutes);
     setTheme(selectedTheme);
+    setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     timer.reset(minutes);
     setPhase("timer");
     setTimeout(() => timer.start(), 50);
@@ -43,6 +47,7 @@ const Index = () => {
   }, [timer, customMinutes]);
 
   const handleReuse = useCallback(() => {
+    setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     timer.reset(customMinutes);
     setPhase("timer");
     setTimeout(() => timer.start(), 50);
@@ -52,6 +57,9 @@ const Index = () => {
   if (timer.status === "complete" && phase === "timer") {
     musicStopRef.current?.();
     setSessions((s) => s + 1);
+    if (theme === "flower") {
+      setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
+    }
     setPhase("complete");
   }
 
@@ -111,15 +119,15 @@ const Index = () => {
             {isMobile && (
               <div className="flex-shrink-0">
                 {theme === "flower" ? (
-                  <GrowingFlower progress={timer.progress} />
+                  <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
                 ) : (
                   <GrowingRocket progress={timer.progress} horizontal />
                 )}
               </div>
             )}
 
-            {/* Timer Card */}
-            <div className="flex flex-col items-center gap-6 sm:gap-8 p-6 sm:p-8 rounded-2xl bg-card border border-border shadow-sm">
+            {/* Timer Card - wider */}
+            <div className="flex flex-col items-center gap-6 sm:gap-8 p-8 sm:p-10 rounded-2xl bg-card border border-border shadow-sm min-w-[320px] sm:min-w-[400px]">
               <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
                 Focus Session
               </span>
@@ -167,7 +175,7 @@ const Index = () => {
             {!isMobile && (
               <div className="flex-shrink-0">
                 {theme === "flower" ? (
-                  <GrowingFlower progress={timer.progress} />
+                  <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
                 ) : (
                   <GrowingRocket progress={timer.progress} />
                 )}
@@ -178,7 +186,7 @@ const Index = () => {
       </main>
 
       {/* Garden Modal */}
-      <Garden sessions={sessions} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
+      <Garden gardenFlowers={gardenFlowers} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
 
       {/* Sticky Notes */}
       <StickyNotes />
