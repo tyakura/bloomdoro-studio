@@ -3,7 +3,7 @@ interface GrowingRocketProps {
   horizontal?: boolean;
 }
 
-export function GrowingRocket({ progress }: GrowingRocketProps) {
+export function GrowingRocket({ progress, horizontal = false }: GrowingRocketProps) {
   const p = Math.max(0, Math.min(1, progress));
 
   // Rocket rises from bottom to top
