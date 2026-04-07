@@ -3,7 +3,6 @@ import { Play, Pause, RotateCcw, Trophy, Flower2 } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
-import { AmbientSounds } from "@/components/AmbientSounds";
 import { SettingsModal } from "@/components/SettingsModal";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useTimer } from "@/hooks/useTimer";
@@ -12,7 +11,7 @@ import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
-
+import { useIsMobile } from "@/hooks/use-mobile";
 const Index = () => {
   const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
   const [sessions, setSessions] = useState(0);
