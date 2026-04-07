@@ -15,7 +15,7 @@ export function GrowingRocket({ progress, horizontal = false }: GrowingRocketPro
   const smokeOpacity = Math.max(0, Math.min(1, p * 3)) * (1 - Math.max(0, (p - 0.7) / 0.3));
 
   return (
-    <svg viewBox="0 0 200 200" className="w-40 h-40" style={{ overflow: "visible" }}>
+    <svg viewBox="0 0 200 200" className={horizontal ? "w-56 h-32" : "w-40 h-40"} style={{ overflow: "visible", transform: horizontal ? "rotate(-90deg)" : undefined }}>
       {/* Stars */}
       {[
         [30, 20], [170, 30], [20, 60], [180, 70], [50, 10],
