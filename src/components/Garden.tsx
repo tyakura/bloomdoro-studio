@@ -1,60 +1,59 @@
-import { useState } from "react";
 import { Flower2, X } from "lucide-react";
+import type { FlowerVariant } from "./GrowingFlower";
 
 const TOTAL_SLOTS = 20;
 
 const FLOWER_VARIANTS = [
-  { petals: "hsl(340 60% 65%)", center: "hsl(45 80% 60%)" },
-  { petals: "hsl(280 50% 65%)", center: "hsl(50 70% 55%)" },
-  { petals: "hsl(20 70% 65%)", center: "hsl(40 80% 50%)" },
-  { petals: "hsl(200 60% 60%)", center: "hsl(55 70% 55%)" },
-  { petals: "hsl(350 55% 55%)", center: "hsl(45 90% 65%)" },
-  { petals: "hsl(160 40% 50%)", center: "hsl(50 60% 55%)" },
+  { petals: "hsl(340 60% 65%)", center: "hsl(45 80% 60%)", vase: "hsl(20 50% 55%)" },
+  { petals: "hsl(280 50% 65%)", center: "hsl(50 70% 55%)", vase: "hsl(280 30% 50%)" },
+  { petals: "hsl(200 60% 60%)", center: "hsl(55 70% 55%)", vase: "hsl(200 35% 50%)" },
+  { petals: "hsl(350 55% 55%)", center: "hsl(45 90% 65%)", vase: "hsl(160 40% 45%)" },
 ];
 
-function GardenFlower({ index }: { index: number }) {
-  const variant = FLOWER_VARIANTS[index % FLOWER_VARIANTS.length];
-  const rotation = (index * 37) % 360;
+const PETAL_CONFIGS = [
+  { count: 8, rx: 6, ry: 4 },
+  { count: 6, rx: 7, ry: 3.5 },
+  { count: 10, rx: 5, ry: 5 },
+  { count: 7, rx: 8, ry: 3.5 },
+];
+
+function GardenFlower({ variant }: { variant: FlowerVariant }) {
+  const v = FLOWER_VARIANTS[variant % FLOWER_VARIANTS.length];
+  const pc = PETAL_CONFIGS[variant % PETAL_CONFIGS.length];
+  const angles = Array.from({ length: pc.count }, (_, i) => (360 / pc.count) * i);
 
   return (
-    <svg viewBox="0 0 60 60" className="w-full h-full">
+    <svg viewBox="0 0 60 70" className="w-full h-full animate-sway" style={{ transformOrigin: "50% 100%" }}>
+      {/* Vase */}
+      <path d="M24 52 L22 66 Q22 69 30 69 Q38 69 38 66 L36 52 Z" fill={v.vase} />
       {/* Stem */}
-      <line x1="30" y1="58" x2="30" y2="32" stroke="hsl(130 40% 45%)" strokeWidth="2" strokeLinecap="round" />
-      <ellipse cx="24" cy="45" rx="5" ry="2.5" fill="hsl(130 40% 50%)" transform="rotate(-30 24 45)" />
-      <ellipse cx="36" cy="40" rx="5" ry="2.5" fill="hsl(130 40% 55%)" transform="rotate(30 36 40)" />
+      <line x1="30" y1="52" x2="30" y2="28" stroke="hsl(130 40% 45%)" strokeWidth="1.5" strokeLinecap="round" />
+      <ellipse cx="24" cy="42" rx="4" ry="2" fill="hsl(130 40% 50%)" transform="rotate(-30 24 42)" />
+      <ellipse cx="36" cy="37" rx="4" ry="2" fill="hsl(130 40% 55%)" transform="rotate(30 36 37)" />
       {/* Petals */}
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
-        const cx = 30 + Math.cos(((angle + rotation) * Math.PI) / 180) * 9;
-        const cy = 25 + Math.sin(((angle + rotation) * Math.PI) / 180) * 9;
+      {angles.map((angle) => {
+        const cx = 30 + Math.cos((angle * Math.PI) / 180) * 8;
+        const cy = 22 + Math.sin((angle * Math.PI) / 180) * 8;
         return (
-          <ellipse
-            key={angle}
-            cx={cx}
-            cy={cy}
-            rx={6}
-            ry={4}
-            fill={variant.petals}
-            opacity={0.85}
-            transform={`rotate(${angle + rotation} ${cx} ${cy})`}
-          />
+          <ellipse key={angle} cx={cx} cy={cy} rx={pc.rx} ry={pc.ry} fill={v.petals} opacity={0.85} transform={`rotate(${angle} ${cx} ${cy})`} />
         );
       })}
       {/* Center */}
-      <circle cx="30" cy="25" r="4" fill={variant.center} />
+      <circle cx="30" cy="22" r="3.5" fill={v.center} />
     </svg>
   );
 }
 
 interface GardenProps {
-  sessions: number;
+  gardenFlowers: FlowerVariant[];
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function Garden({ sessions, isOpen, onClose }: GardenProps) {
+export function Garden({ gardenFlowers, isOpen, onClose }: GardenProps) {
   if (!isOpen) return null;
 
-  const filledSlots = Math.min(sessions, TOTAL_SLOTS);
+  const filledSlots = Math.min(gardenFlowers.length, TOTAL_SLOTS);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
@@ -84,7 +83,7 @@ export function Garden({ sessions, isOpen, onClose }: GardenProps) {
               }`}
             >
               {i < filledSlots ? (
-                <GardenFlower index={i} />
+                <GardenFlower variant={gardenFlowers[i]} />
               ) : (
                 <Flower2 className="w-6 h-6 text-muted-foreground/30" />
               )}
