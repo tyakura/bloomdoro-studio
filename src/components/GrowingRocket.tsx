@@ -1,5 +1,6 @@
 interface GrowingRocketProps {
   progress: number; // 0 to 1
+  horizontal?: boolean;
 }
 
 export function GrowingRocket({ progress }: GrowingRocketProps) {
