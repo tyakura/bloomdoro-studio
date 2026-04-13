@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import { Settings, X, Upload, Link, Volume2, VolumeX, Flower2 } from "lucide-react";
+import { Settings, X, Upload, Link, Flower2, Image, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 
 const AMBIENT_SOUNDS = [
   { id: "rain", label: "🌧️ Rain", url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
@@ -15,12 +16,17 @@ interface SettingsModalProps {
   showAmbient?: boolean;
   showGarden?: boolean;
   onGardenOpen?: () => void;
+  onBgChange?: (url: string | null, isVideo: boolean) => void;
+  bgImage?: string | null;
 }
 
-export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen }: SettingsModalProps) {
+export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage }: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [bgUrl, setBgUrl] = useState("");
+  const [volume, setVolume] = useState(50);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bgFileInputRef = useRef<HTMLInputElement>(null);
   const [activeSound, setActiveSound] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -29,6 +35,23 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
     if (file) {
       const url = URL.createObjectURL(file);
       onMusicLoad(url, file.name);
+    }
+  };
+
+  const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      const isVideo = file.type.startsWith("video/");
+      onBgChange?.(url, isVideo);
+    }
+  };
+
+  const handleBgUrlSubmit = () => {
+    if (bgUrl.trim()) {
+      const isVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(bgUrl);
+      onBgChange?.(bgUrl.trim(), isVideo);
+      setBgUrl("");
     }
   };
 
@@ -50,11 +73,24 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
       if (sound) {
         const audio = new Audio(sound.url);
         audio.loop = true;
-        audio.volume = 0.4;
+        audio.volume = volume / 100;
         audio.play().catch(() => {});
         audioRef.current = audio;
         setActiveSound(soundId);
       }
+    }
+  };
+
+  const stopAmbient = () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setActiveSound(null);
+  };
+
+  const handleVolumeChange = (val: number[]) => {
+    setVolume(val[0]);
+    if (audioRef.current) {
+      audioRef.current.volume = val[0] / 100;
     }
   };
 
@@ -115,8 +151,80 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
                   </button>
                 ))}
               </div>
+              {activeSound && (
+                <button
+                  onClick={stopAmbient}
+                  className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors"
+                >
+                  🔇 Matikan
+                </button>
+              )}
             </div>
           )}
+
+          {/* Volume Control */}
+          <div>
+            <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+              <Volume2 className="w-4 h-4" />
+              Volume
+            </h3>
+            <div className="flex items-center gap-3">
+              <Slider
+                value={[volume]}
+                onValueChange={handleVolumeChange}
+                max={100}
+                min={0}
+                step={1}
+                className="flex-1"
+              />
+              <span className="text-sm text-muted-foreground w-10 text-right">{volume}%</span>
+            </div>
+          </div>
+
+          {/* Background Image/Video */}
+          <div>
+            <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+              <Image className="w-4 h-4" />
+              Background
+            </h3>
+            <div className="space-y-2">
+              <input
+                ref={bgFileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleBgFileUpload}
+                className="hidden"
+              />
+              <Button
+                onClick={() => bgFileInputRef.current?.click()}
+                variant="outline"
+                className="w-full justify-start gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Upload gambar / video
+              </Button>
+              <div className="flex gap-2">
+                <Input
+                  value={bgUrl}
+                  onChange={(e) => setBgUrl(e.target.value)}
+                  placeholder="Paste image/video URL..."
+                  className="flex-1"
+                />
+                <Button onClick={handleBgUrlSubmit} size="icon" variant="outline">
+                  <Link className="w-4 h-4" />
+                </Button>
+              </div>
+              {bgImage && (
+                <Button
+                  onClick={() => onBgChange?.(null, false)}
+                  variant="outline"
+                  className="w-full text-destructive hover:text-destructive"
+                >
+                  Hapus Background
+                </Button>
+              )}
+            </div>
+          </div>
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">Upload Music from Device</h3>

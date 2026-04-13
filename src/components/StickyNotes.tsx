@@ -22,11 +22,22 @@ const NOTE_COLORS = [
   "bg-purple-100 border-purple-300 text-purple-900",
 ];
 
+const COLOR_SWATCHES = [
+  { bg: "#fef9c3", border: "#fde047", text: "#713f12", class: "bg-yellow-100 border-yellow-300 text-yellow-900" },
+  { bg: "#fce7f3", border: "#f9a8d4", text: "#831843", class: "bg-pink-100 border-pink-300 text-pink-900" },
+  { bg: "#dbeafe", border: "#93c5fd", text: "#1e3a5f", class: "bg-blue-100 border-blue-300 text-blue-900" },
+  { bg: "#dcfce7", border: "#86efac", text: "#14532d", class: "bg-green-100 border-green-300 text-green-900" },
+  { bg: "#f3e8ff", border: "#d8b4fe", text: "#581c87", class: "bg-purple-100 border-purple-300 text-purple-900" },
+];
+
 export function StickyNotes() {
   const [notes, setNotes] = useState<StickyNote[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedColor, setSelectedColor] = useState(0);
+  const [customColor, setCustomColor] = useState("#fef9c3");
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
 
   const today = new Date().toLocaleDateString("id-ID", {
@@ -35,8 +46,34 @@ export function StickyNotes() {
     year: "numeric",
   });
 
+  const getColorClass = () => {
+    if (selectedColor < COLOR_SWATCHES.length) {
+      return COLOR_SWATCHES[selectedColor].class;
+    }
+    return "custom";
+  };
+
+  const getCustomStyle = () => {
+    if (selectedColor >= COLOR_SWATCHES.length) {
+      return {
+        backgroundColor: customColor,
+        borderColor: customColor,
+        color: isLightColor(customColor) ? "#1a1a1a" : "#ffffff",
+      };
+    }
+    return undefined;
+  };
+
+  const isLightColor = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+  };
+
   const handleDone = () => {
     if (!title.trim()) return;
+    const colorClass = getColorClass();
     const note: StickyNote = {
       id: crypto.randomUUID(),
       title: title.trim(),
@@ -44,11 +81,13 @@ export function StickyNotes() {
       date: today,
       x: 100 + Math.random() * 200,
       y: 100 + Math.random() * 200,
-      color: NOTE_COLORS[notes.length % NOTE_COLORS.length],
+      color: colorClass === "custom" ? `custom:${customColor}` : colorClass,
     };
     setNotes((prev) => [...prev, note]);
     setTitle("");
     setDescription("");
+    setSelectedColor(0);
+    setShowColorPicker(false);
     setIsCreating(false);
   };
 
@@ -82,6 +121,25 @@ export function StickyNotes() {
     setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
+  const getNoteStyle = (note: StickyNote) => {
+    if (note.color.startsWith("custom:")) {
+      const hex = note.color.replace("custom:", "");
+      return {
+        backgroundColor: hex,
+        borderColor: hex,
+        color: isLightColor(hex) ? "#1a1a1a" : "#ffffff",
+      };
+    }
+    return undefined;
+  };
+
+  const getNoteClass = (note: StickyNote) => {
+    if (note.color.startsWith("custom:")) {
+      return "border-2";
+    }
+    return note.color;
+  };
+
   return (
     <>
       {/* Draggable sticky notes */}
@@ -89,8 +147,8 @@ export function StickyNotes() {
         <div
           key={note.id}
           data-note-id={note.id}
-          className={`fixed z-40 w-52 rounded-lg border-2 shadow-lg p-3 cursor-grab active:cursor-grabbing select-none ${note.color}`}
-          style={{ left: note.x, top: note.y }}
+          className={`fixed z-40 w-52 rounded-lg border-2 shadow-lg p-3 cursor-grab active:cursor-grabbing select-none ${getNoteClass(note)}`}
+          style={{ left: note.x, top: note.y, ...getNoteStyle(note) }}
           onMouseDown={(e) => handleMouseDown(e, note.id)}
         >
           <div className="flex items-start justify-between mb-1">
@@ -131,11 +189,49 @@ export function StickyNotes() {
                 placeholder="Deskripsi..."
                 rows={3}
               />
+
+              {/* Color Picker */}
+              <div>
+                <span className="text-xs text-muted-foreground mb-2 block">Warna Catatan</span>
+                <div className="flex items-center gap-2">
+                  {COLOR_SWATCHES.map((swatch, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setSelectedColor(i); setShowColorPicker(false); }}
+                      className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                        selectedColor === i ? "scale-125 ring-2 ring-primary ring-offset-2" : "hover:scale-110"
+                      }`}
+                      style={{ backgroundColor: swatch.bg, borderColor: swatch.border }}
+                    />
+                  ))}
+                  {/* Custom color button */}
+                  <button
+                    onClick={() => { setSelectedColor(COLOR_SWATCHES.length); setShowColorPicker(!showColorPicker); }}
+                    className={`w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground flex items-center justify-center transition-transform ${
+                      selectedColor >= COLOR_SWATCHES.length ? "scale-125 ring-2 ring-primary ring-offset-2" : "hover:scale-110"
+                    }`}
+                    style={selectedColor >= COLOR_SWATCHES.length ? { backgroundColor: customColor } : undefined}
+                  >
+                    {selectedColor < COLOR_SWATCHES.length && <Plus className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </button>
+                </div>
+                {showColorPicker && (
+                  <div className="mt-2">
+                    <input
+                      type="color"
+                      value={customColor}
+                      onChange={(e) => setCustomColor(e.target.value)}
+                      className="w-full h-10 rounded-lg cursor-pointer border border-border"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-2">
                 <Button onClick={handleDone} className="flex-1" disabled={!title.trim()}>
                   Done
                 </Button>
-                <Button onClick={() => setIsCreating(false)} variant="outline" className="flex-1">
+                <Button onClick={() => { setIsCreating(false); setShowColorPicker(false); }} variant="outline" className="flex-1">
                   Batal
                 </Button>
               </div>

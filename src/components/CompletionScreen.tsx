@@ -6,13 +6,13 @@ interface CompletionScreenProps {
   lastMinutes: number;
   onReuse: () => void;
   onChangeTime: () => void;
+  cycleCount?: number;
 }
 
-export function CompletionScreen({ lastMinutes, onReuse, onChangeTime }: CompletionScreenProps) {
+export function CompletionScreen({ lastMinutes, onReuse, onChangeTime, cycleCount = 0 }: CompletionScreenProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Play a gentle chime/siren sound
     const audio = new Audio("https://cdn.freesound.org/previews/536/536420_11943129-lq.mp3");
     audio.volume = 0.4;
     audio.play().catch(() => {});
@@ -38,6 +38,11 @@ export function CompletionScreen({ lastMinutes, onReuse, onChangeTime }: Complet
         <p className="text-muted-foreground text-sm">
           Kamu telah menyelesaikan sesi fokus {lastMinutes} menit. Kerja bagus!
         </p>
+        {cycleCount > 1 && (
+          <p className="text-primary text-sm font-medium">
+            🌸 {cycleCount} putaran selesai — {cycleCount} bunga ditambahkan ke garden!
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 w-full mt-2">
