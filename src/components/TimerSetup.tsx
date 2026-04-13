@@ -20,7 +20,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower" }: TimerSetupProps
   const [repeat, setRepeat] = useState(false);
 
   return (
-    <div className="flex flex-col md:flex-row items-start justify-center gap-6">
+    <div className="flex flex-col items-center justify-center gap-6 md:flex-row md:items-start">
       {/* Main Focus Timer Card */}
       <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-md w-full">
         <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
