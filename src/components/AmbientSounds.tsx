@@ -41,6 +41,12 @@ export function AmbientSounds() {
     }
   };
 
+  const stopAll = () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setActiveSound(null);
+  };
+
   return (
     <div className="relative">
       <button
@@ -65,6 +71,14 @@ export function AmbientSounds() {
               {sound.label}
             </button>
           ))}
+          {activeSound && (
+            <button
+              onClick={stopAll}
+              className="px-3 py-2 rounded-lg text-sm text-left transition-colors text-destructive hover:bg-destructive/10"
+            >
+              🔇 Matikan
+            </button>
+          )}
         </div>
       )}
     </div>

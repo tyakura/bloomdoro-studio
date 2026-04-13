@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Play, Pause, RotateCcw, Trophy, Flower2 } from "lucide-react";
+import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
@@ -14,61 +14,138 @@ import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+type SessionPhase = "setup" | "focus" | "break" | "complete";
+
 const Index = () => {
-  const [phase, setPhase] = useState<"setup" | "timer" | "complete">("setup");
+  const [phase, setPhase] = useState<SessionPhase>("setup");
   const [sessions, setSessions] = useState(0);
   const [customMinutes, setCustomMinutes] = useState(25);
+  const [breakMinutes, setBreakMinutes] = useState(0);
+  const [repeatMode, setRepeatMode] = useState(false);
+  const [cycleCount, setCycleCount] = useState(0); // completed focus cycles in repeat
   const [theme, setTheme] = useState<TimerTheme>("flower");
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
   const [gardenOpen, setGardenOpen] = useState(false);
   const [gardenFlowers, setGardenFlowers] = useState<FlowerVariant[]>([]);
   const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgIsVideo, setBgIsVideo] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
 
-  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme) => {
+  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean) => {
     setCustomMinutes(minutes);
+    setBreakMinutes(breakMins);
+    setRepeatMode(repeat);
+    setCycleCount(0);
     setTheme(selectedTheme);
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     timer.reset(minutes);
-    setPhase("timer");
+    setPhase("focus");
     setTimeout(() => timer.start(), 50);
   }, [timer]);
 
   const handleReset = useCallback(() => {
-    timer.reset(customMinutes);
-  }, [timer, customMinutes]);
+    if (phase === "focus") timer.reset(customMinutes);
+    else if (phase === "break") timer.reset(breakMinutes);
+  }, [timer, customMinutes, breakMinutes, phase]);
 
   const handleBackToSetup = useCallback(() => {
     timer.reset(customMinutes);
     setPhase("setup");
   }, [timer, customMinutes]);
 
+  const handleStop = useCallback(() => {
+    // Stop repeat mode, award flowers for completed cycles
+    timer.reset(customMinutes);
+    if (cycleCount > 0 && theme === "flower") {
+      const newFlowers: FlowerVariant[] = [];
+      for (let i = 0; i < cycleCount; i++) {
+        newFlowers.push((Math.floor(Math.random() * 4)) as FlowerVariant);
+      }
+      setGardenFlowers((prev) => [...prev, ...newFlowers].slice(0, 20));
+    }
+    setPhase("complete");
+  }, [timer, customMinutes, cycleCount, theme]);
+
   const handleReuse = useCallback(() => {
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
+    setCycleCount(0);
     timer.reset(customMinutes);
-    setPhase("timer");
+    setPhase("focus");
     setTimeout(() => timer.start(), 50);
   }, [timer, customMinutes]);
 
-  // Track completed sessions
-  if (timer.status === "complete" && phase === "timer") {
+  // Handle timer completion
+  if (timer.status === "complete" && (phase === "focus" || phase === "break")) {
     musicStopRef.current?.();
-    setSessions((s) => s + 1);
-    if (theme === "flower") {
-      setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
+
+    if (phase === "focus") {
+      const newCycleCount = cycleCount + 1;
+      setCycleCount(newCycleCount);
+      setSessions((s) => s + 1);
+
+      if (theme === "flower") {
+        setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
+      }
+
+      if (breakMinutes > 0) {
+        // Switch to break
+        timer.reset(breakMinutes);
+        setPhase("break");
+        setTimeout(() => timer.start(), 50);
+      } else if (repeatMode) {
+        // No break, repeat focus
+        setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
+        timer.reset(customMinutes);
+        setPhase("focus");
+        setTimeout(() => timer.start(), 50);
+      } else {
+        setPhase("complete");
+      }
+    } else if (phase === "break") {
+      if (repeatMode) {
+        // Start next focus cycle
+        setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
+        timer.reset(customMinutes);
+        setPhase("focus");
+        setTimeout(() => timer.start(), 50);
+      } else {
+        setPhase("complete");
+      }
     }
-    setPhase("complete");
   }
 
   const pad = (n: number) => n.toString().padStart(2, "0");
 
+  const isTimerPhase = phase === "focus" || phase === "break";
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative">
+      {/* Background Image/Video */}
+      {bgImage && (
+        bgIsVideo ? (
+          <video
+            src={bgImage}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="fixed inset-0 w-full h-full object-cover z-0"
+          />
+        ) : (
+          <div
+            className="fixed inset-0 w-full h-full bg-cover bg-center z-0"
+            style={{ backgroundImage: `url(${bgImage})` }}
+          />
+        )
+      )}
+      {bgImage && <div className="fixed inset-0 bg-background/70 z-0" />}
+
       {/* Header */}
-      <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-10">
         <BloomdoroLogo />
         <div className="flex items-center gap-2 sm:gap-3">
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
@@ -89,12 +166,14 @@ const Index = () => {
             showAmbient={isMobile}
             showGarden={isMobile}
             onGardenOpen={() => setGardenOpen(true)}
+            onBgChange={(url, isVideo) => { setBgImage(url); setBgIsVideo(isVideo); }}
+            bgImage={bgImage}
           />
         </div>
       </header>
 
       {/* Session Counter */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-4 relative z-10">
         <div className="flex items-center gap-2 px-6 py-3 rounded-full bg-card border border-border shadow-sm">
           <Trophy className="w-5 h-5 text-primary" />
           <span className="font-display font-semibold text-foreground">
@@ -104,7 +183,7 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-6 pb-12">
+      <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
         {phase === "setup" ? (
           <TimerSetup onStart={handleStart} defaultTheme={theme} />
         ) : phase === "complete" ? (
@@ -112,25 +191,44 @@ const Index = () => {
             lastMinutes={customMinutes}
             onReuse={handleReuse}
             onChangeTime={() => setPhase("setup")}
+            cycleCount={cycleCount}
           />
         ) : (
           <div className={`flex ${isMobile ? 'flex-col items-center gap-8' : 'flex-row items-center justify-center'}`} style={!isMobile ? { gap: '120px' } : undefined}>
             {/* Animation on top for mobile */}
             {isMobile && (
               <div className="flex-shrink-0">
-                {theme === "flower" ? (
-                  <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
-                ) : (
-                  <GrowingRocket progress={timer.progress} horizontal />
+                {phase === "focus" && (
+                  theme === "flower" ? (
+                    <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
+                  ) : (
+                    <GrowingRocket progress={timer.progress} horizontal />
+                  )
+                )}
+                {phase === "break" && (
+                  <div className="flex flex-col items-center">
+                    <Coffee className="w-16 h-16 text-primary animate-pulse" />
+                    <span className="text-sm text-muted-foreground mt-2">Waktu Istirahat</span>
+                  </div>
                 )}
               </div>
             )}
 
-            {/* Timer Card - wider */}
-            <div className="flex flex-col items-center gap-6 sm:gap-8 p-8 sm:p-10 rounded-2xl bg-card border border-border shadow-sm min-w-[320px] sm:min-w-[400px]">
-              <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
-                Focus Session
+            {/* Timer Card */}
+            <div className="flex flex-col items-center gap-6 sm:gap-8 p-8 sm:p-10 rounded-2xl bg-card border border-border shadow-sm min-w-[320px] sm:min-w-[420px]">
+              <span className={`px-4 py-1.5 rounded-full font-display font-semibold text-sm tracking-wide uppercase ${
+                phase === "break"
+                  ? "bg-accent/20 text-accent"
+                  : "bg-badge-bg text-badge-text"
+              }`}>
+                {phase === "focus" ? "Focus Session" : "☕ Break Time"}
               </span>
+
+              {repeatMode && (
+                <span className="text-xs text-muted-foreground">
+                  Putaran ke-{cycleCount + (phase === "focus" ? 1 : 0)}
+                </span>
+              )}
 
               <TimerRing progress={timer.progress} size={isMobile ? 180 : 240}>
                 <div className="flex flex-col items-center gap-1">
@@ -163,21 +261,40 @@ const Index = () => {
                 </button>
               </div>
 
-              <button
-                onClick={handleBackToSetup}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                ← Ganti waktu
-              </button>
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={handleBackToSetup}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ← Ganti waktu
+                </button>
+                {repeatMode && (
+                  <button
+                    onClick={handleStop}
+                    className="flex items-center gap-1.5 text-sm text-destructive hover:text-destructive/80 transition-colors"
+                  >
+                    <Square className="w-3.5 h-3.5" />
+                    Hentikan
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Animation on right for desktop */}
             {!isMobile && (
               <div className="flex-shrink-0">
-                {theme === "flower" ? (
-                  <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
-                ) : (
-                  <GrowingRocket progress={timer.progress} />
+                {phase === "focus" && (
+                  theme === "flower" ? (
+                    <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
+                  ) : (
+                    <GrowingRocket progress={timer.progress} />
+                  )
+                )}
+                {phase === "break" && (
+                  <div className="flex flex-col items-center">
+                    <Coffee className="w-24 h-24 text-primary animate-pulse" />
+                    <span className="text-muted-foreground mt-3">Waktu Istirahat</span>
+                  </div>
                 )}
               </div>
             )}
