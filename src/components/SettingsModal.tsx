@@ -22,7 +22,7 @@ interface SettingsModalProps {
   onOverlayChange?: (val: number) => void;
 }
 
-export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage }: SettingsModalProps) {
+export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage, overlayOpacity = 70, onOverlayChange }: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [bgUrl, setBgUrl] = useState("");
