@@ -183,7 +183,7 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
+      <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-30">
         {phase === "setup" ? (
           <TimerSetup onStart={handleStart} defaultTheme={theme} />
         ) : phase === "complete" ? (
