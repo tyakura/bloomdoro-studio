@@ -31,6 +31,7 @@ const Index = () => {
   const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgIsVideo, setBgIsVideo] = useState(false);
+  const [bgOverlay, setBgOverlay] = useState(70);
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
