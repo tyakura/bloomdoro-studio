@@ -169,6 +169,8 @@ const Index = () => {
             onGardenOpen={() => setGardenOpen(true)}
             onBgChange={(url, isVideo) => { setBgImage(url); setBgIsVideo(isVideo); }}
             bgImage={bgImage}
+            overlayOpacity={bgOverlay}
+            onOverlayChange={setBgOverlay}
           />
         </div>
       </header>
