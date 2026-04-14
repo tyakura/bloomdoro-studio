@@ -79,7 +79,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         stroke="hsl(130 40% 45%)"
         strokeWidth="2.5"
         strokeLinecap="round"
-        style={{ transition: "all 1s ease-out" }}
+        style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
         opacity={p > 0 ? 1 : 0}
       />
 
@@ -91,7 +91,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         ry={4 * leafScale}
         fill="hsl(130 40% 45%)"
         transform={`rotate(-30 42 ${92 - stemHeight * 0.5})`}
-        style={{ transition: "all 1s ease-out" }}
+        style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
         opacity={leafScale}
       />
 
@@ -103,7 +103,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         ry={4 * leafScale}
         fill="hsl(130 40% 50%)"
         transform={`rotate(30 58 ${92 - stemHeight * 0.65})`}
-        style={{ transition: "all 1s ease-out" }}
+        style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
         opacity={leafScale}
       />
 
@@ -121,7 +121,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
             fill={v.petals}
             opacity={petalScale * 0.85}
             transform={`rotate(${angle} ${cx} ${cy})`}
-            style={{ transition: "all 1s ease-out" }}
+            style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
           />
         );
       })}
@@ -133,7 +133,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         r={5 * centerScale}
         fill={v.center}
         opacity={centerScale}
-        style={{ transition: "all 1s ease-out" }}
+        style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
       />
     </svg>
   );

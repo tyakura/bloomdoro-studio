@@ -31,6 +31,7 @@ const Index = () => {
   const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgIsVideo, setBgIsVideo] = useState(false);
+  const [bgOverlay, setBgOverlay] = useState(70);
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
@@ -142,7 +143,7 @@ const Index = () => {
           />
         )
       )}
-      {bgImage && <div className="fixed inset-0 bg-background/70 z-0" />}
+      {bgImage && <div className="fixed inset-0 z-0" style={{ backgroundColor: `hsl(var(--background) / ${bgOverlay / 100})` }} />}
 
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
@@ -168,6 +169,8 @@ const Index = () => {
             onGardenOpen={() => setGardenOpen(true)}
             onBgChange={(url, isVideo) => { setBgImage(url); setBgIsVideo(isVideo); }}
             bgImage={bgImage}
+            overlayOpacity={bgOverlay}
+            onOverlayChange={setBgOverlay}
           />
         </div>
       </header>

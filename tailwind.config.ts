@@ -90,8 +90,8 @@ export default {
           "100%": { transform: "scale(1)", opacity: "0.8" },
         },
         "sway": {
-          "0%, 100%": { transform: "rotate(-3deg)" },
-          "50%": { transform: "rotate(3deg)" },
+          "0%, 100%": { transform: "rotate(-2deg) translateX(-1px)" },
+          "50%": { transform: "rotate(2deg) translateX(1px)" },
         },
         "fade-in": {
           "0%": { opacity: "0", transform: "translateY(10px)" },
@@ -106,7 +106,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-ring": "pulse-ring 2s ease-in-out infinite",
-        "sway": "sway 3s ease-in-out infinite",
+        "sway": "sway 4s cubic-bezier(0.37, 0, 0.63, 1) infinite",
         "fade-in": "fade-in 0.3s ease-out",
         "scale-in": "scale-in 0.2s ease-out",
       },
