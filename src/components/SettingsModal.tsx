@@ -107,7 +107,7 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
   }
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
       <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-display text-xl font-bold text-foreground">Settings</h2>
