@@ -217,13 +217,25 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
                 </Button>
               </div>
               {bgImage && (
-                <Button
-                  onClick={() => onBgChange?.(null, false)}
-                  variant="outline"
-                  className="w-full text-destructive hover:text-destructive"
-                >
-                  Hapus Background
-                </Button>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Overlay Opacity: {overlayOpacity}%</label>
+                    <Slider
+                      value={[overlayOpacity]}
+                      onValueChange={(val) => onOverlayChange?.(val[0])}
+                      max={100}
+                      min={0}
+                      step={5}
+                    />
+                  </div>
+                  <Button
+                    onClick={() => onBgChange?.(null, false)}
+                    variant="outline"
+                    className="w-full text-destructive hover:text-destructive"
+                  >
+                    Hapus Background
+                  </Button>
+                </div>
               )}
             </div>
           </div>
