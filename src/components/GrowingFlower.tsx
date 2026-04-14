@@ -79,7 +79,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         stroke="hsl(130 40% 45%)"
         strokeWidth="2.5"
         strokeLinecap="round"
-        style={{ transition: "all 1s ease-out" }}
+        style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
         opacity={p > 0 ? 1 : 0}
       />
 
