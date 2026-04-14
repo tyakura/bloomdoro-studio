@@ -57,7 +57,7 @@ export function AmbientSounds() {
         Ambient
       </button>
       {isOpen && (
-        <div className="absolute top-full mt-2 right-0 bg-card border border-border rounded-xl shadow-lg p-3 flex flex-col gap-1.5 min-w-[150px] z-20">
+        <div className="absolute top-full mt-2 right-0 bg-card border border-border rounded-xl shadow-lg p-3 flex flex-col gap-1.5 min-w-[150px] z-[110]">
           {AMBIENT_SOUNDS.map((sound) => (
             <button
               key={sound.id}
