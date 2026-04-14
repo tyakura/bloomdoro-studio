@@ -90,8 +90,8 @@ export default {
           "100%": { transform: "scale(1)", opacity: "0.8" },
         },
         "sway": {
-          "0%, 100%": { transform: "rotate(-3deg)" },
-          "50%": { transform: "rotate(3deg)" },
+          "0%, 100%": { transform: "rotate(-2deg) translateX(-1px)" },
+          "50%": { transform: "rotate(2deg) translateX(1px)" },
         },
         "fade-in": {
           "0%": { opacity: "0", transform: "translateY(10px)" },
