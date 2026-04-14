@@ -18,6 +18,8 @@ interface SettingsModalProps {
   onGardenOpen?: () => void;
   onBgChange?: (url: string | null, isVideo: boolean) => void;
   bgImage?: string | null;
+  overlayOpacity?: number;
+  onOverlayChange?: (val: number) => void;
 }
 
 export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage }: SettingsModalProps) {
