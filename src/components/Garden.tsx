@@ -56,7 +56,7 @@ export function Garden({ gardenFlowers, isOpen, onClose }: GardenProps) {
   const filledSlots = Math.min(gardenFlowers.length, TOTAL_SLOTS);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 animate-fade-in">
       <div className="bg-card border border-border rounded-2xl shadow-xl max-w-lg w-full mx-4 p-6 relative animate-scale-in">
         <button
           onClick={onClose}
