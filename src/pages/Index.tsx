@@ -143,7 +143,7 @@ const Index = () => {
           />
         )
       )}
-      {bgImage && <div className="fixed inset-0 bg-background/70 z-0" />}
+      {bgImage && <div className="fixed inset-0 z-0" style={{ backgroundColor: `hsl(var(--background) / ${bgOverlay / 100})` }} />}
 
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
