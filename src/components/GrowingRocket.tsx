@@ -21,10 +21,13 @@ export function GrowingRocket({ progress, horizontal = false }: GrowingRocketPro
   const earthScale = Math.max(0.3, 1 - p * 0.6);
   const smokeOpacity = isLanding ? 0 : Math.max(0, Math.min(1, p * 3)) * (1 - Math.max(0, (p - 0.7) / 0.3));
 
+  // Fins bottom is at y=140 in rocket local coords, rocket body bottom at y=133
+  // Earth should be centered at the fin tips
+  const earthY = 198;
+
   return (
     <svg viewBox="0 0 200 200" className={horizontal ? "w-64 h-40" : "w-56 h-56"} style={{ overflow: "visible", transform: horizontal ? "rotate(-90deg)" : undefined }}>
       <defs>
-        {/* Animated flame gradient */}
         <radialGradient id="flameOuter" cx="50%" cy="30%" r="60%">
           <stop offset="0%" stopColor="hsl(45 100% 60%)" />
           <stop offset="50%" stopColor="hsl(25 100% 55%)" />
@@ -85,10 +88,10 @@ export function GrowingRocket({ progress, horizontal = false }: GrowingRocketPro
         </g>
       )}
 
-      {/* Earth */}
+      {/* Earth - centered under the rocket fins */}
       <ellipse
         cx="100"
-        cy="195"
+        cy={earthY}
         rx={60 * earthScale}
         ry={20 * earthScale}
         fill="hsl(var(--primary))"
@@ -110,28 +113,32 @@ export function GrowingRocket({ progress, horizontal = false }: GrowingRocketPro
         />
       ))}
 
-      {/* Rocket body */}
+      {/* Rocket group - flame drawn FIRST (behind), then body on top */}
       <g style={{
         transform: `translateY(${rocketY - 100}px) rotate(${rocketRotation}deg)`,
         transformOrigin: "100px 115px",
         transition: "all 1s ease-out"
       }}>
-        {/* Main body - with dark mode border */}
-        <rect x="90" y="97" width="20" height="36" rx="4" fill="hsl(var(--foreground))"
-          className="dark:stroke-white/50" strokeWidth="1" />
-        {/* Nose cone */}
-        <polygon points="100,83 90,97 110,97" fill="hsl(var(--primary))"
-          className="dark:stroke-white/40" strokeWidth="0.8" />
-        {/* Window */}
-        <circle cx="100" cy="107" r="5" fill="hsl(var(--badge-bg))" />
-        <circle cx="100" cy="107" r="3" fill="hsl(var(--primary))" opacity="0.6" />
-        {/* Fins */}
-        <polygon points="90,127 81,140 90,133" fill="hsl(var(--primary))"
-          className="dark:stroke-white/30" strokeWidth="0.5" />
-        <polygon points="110,127 119,140 110,133" fill="hsl(var(--primary))"
-          className="dark:stroke-white/30" strokeWidth="0.5" />
+        {/* === FLAME (behind rocket) === */}
+        {/* Flame sparks - furthest back */}
+        {flameScale > 0.3 && (
+          <>
+            <circle cx="96" cy="148" r={1.5 * flameScale} fill="hsl(30 100% 60%)" opacity={flameScale * 0.5}>
+              <animate attributeName="cy" values="148;155;148" dur="0.4s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values={`${flameScale * 0.5};0;${flameScale * 0.5}`} dur="0.4s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="104" cy="150" r={1 * flameScale} fill="hsl(40 100% 65%)" opacity={flameScale * 0.4}>
+              <animate attributeName="cy" values="150;158;150" dur="0.35s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values={`${flameScale * 0.4};0;${flameScale * 0.4}`} dur="0.35s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="100" cy="152" r={1.2 * flameScale} fill="hsl(25 90% 55%)" opacity={flameScale * 0.3}>
+              <animate attributeName="cy" values="152;162;152" dur="0.45s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values={`${flameScale * 0.3};0;${flameScale * 0.3}`} dur="0.45s" repeatCount="indefinite" />
+            </circle>
+          </>
+        )}
 
-        {/* Animated Flame - outer glow */}
+        {/* Outer glow */}
         <ellipse
           cx="100"
           cy="140"
@@ -170,23 +177,21 @@ export function GrowingRocket({ progress, horizontal = false }: GrowingRocketPro
           <animate attributeName="ry" values={`${8 * flameScale};${10 * flameScale};${7 * flameScale};${8 * flameScale}`} dur="0.18s" repeatCount="indefinite" />
         </ellipse>
 
-        {/* Flame sparks */}
-        {flameScale > 0.3 && (
-          <>
-            <circle cx="96" cy="148" r={1.5 * flameScale} fill="hsl(30 100% 60%)" opacity={flameScale * 0.5}>
-              <animate attributeName="cy" values="148;155;148" dur="0.4s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values={`${flameScale * 0.5};0;${flameScale * 0.5}`} dur="0.4s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="104" cy="150" r={1 * flameScale} fill="hsl(40 100% 65%)" opacity={flameScale * 0.4}>
-              <animate attributeName="cy" values="150;158;150" dur="0.35s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values={`${flameScale * 0.4};0;${flameScale * 0.4}`} dur="0.35s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="100" cy="152" r={1.2 * flameScale} fill="hsl(25 90% 55%)" opacity={flameScale * 0.3}>
-              <animate attributeName="cy" values="152;162;152" dur="0.45s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values={`${flameScale * 0.3};0;${flameScale * 0.3}`} dur="0.45s" repeatCount="indefinite" />
-            </circle>
-          </>
-        )}
+        {/* === ROCKET BODY (on top of flame) === */}
+        {/* Fins */}
+        <polygon points="90,127 81,140 90,133" fill="hsl(var(--primary))"
+          className="dark:stroke-white/30" strokeWidth="0.5" />
+        <polygon points="110,127 119,140 110,133" fill="hsl(var(--primary))"
+          className="dark:stroke-white/30" strokeWidth="0.5" />
+        {/* Main body */}
+        <rect x="90" y="97" width="20" height="36" rx="4" fill="hsl(var(--foreground))"
+          className="dark:stroke-white/50" strokeWidth="1" />
+        {/* Nose cone */}
+        <polygon points="100,83 90,97 110,97" fill="hsl(var(--primary))"
+          className="dark:stroke-white/40" strokeWidth="0.8" />
+        {/* Window */}
+        <circle cx="100" cy="107" r="5" fill="hsl(var(--badge-bg))" />
+        <circle cx="100" cy="107" r="3" fill="hsl(var(--primary))" opacity="0.6" />
       </g>
     </svg>
   );

@@ -57,26 +57,16 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
 
   return (
     <svg
-      viewBox="0 0 100 110"
+      viewBox="0 0 100 120"
       className="w-56 h-56 animate-sway"
       style={{ overflow: "visible", transformOrigin: "50% 100%" }}
     >
-      {/* Vase */}
-      <path
-        d="M38 92 L36 108 Q36 112 50 112 Q64 112 64 108 L62 92 Z"
-        fill={v.vase}
-        stroke={v.vaseAccent}
-        strokeWidth="1"
-        className="dark:stroke-white/40"
-      />
-      <ellipse cx="50" cy="92" rx="13" ry="3" fill={v.vaseAccent} opacity="0.5" />
-
-      {/* Stem */}
+      {/* Stem - drawn FIRST so it's behind the vase */}
       <line
         x1="50"
-        y1="92"
+        y1="95"
         x2="50"
-        y2={92 - stemHeight}
+        y2={95 - stemHeight}
         stroke="hsl(130 40% 45%)"
         strokeWidth="2.5"
         strokeLinecap="round"
@@ -88,11 +78,11 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
       {/* Left leaf */}
       <ellipse
         cx="42"
-        cy={92 - stemHeight * 0.5}
+        cy={95 - stemHeight * 0.5}
         rx={8 * leafScale}
         ry={4 * leafScale}
         fill="hsl(130 40% 45%)"
-        transform={`rotate(-30 42 ${92 - stemHeight * 0.5})`}
+        transform={`rotate(-30 42 ${95 - stemHeight * 0.5})`}
         style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
         opacity={leafScale}
       />
@@ -100,19 +90,29 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
       {/* Right leaf */}
       <ellipse
         cx="58"
-        cy={92 - stemHeight * 0.65}
+        cy={95 - stemHeight * 0.65}
         rx={8 * leafScale}
         ry={4 * leafScale}
         fill="hsl(130 40% 50%)"
-        transform={`rotate(30 58 ${92 - stemHeight * 0.65})`}
+        transform={`rotate(30 58 ${95 - stemHeight * 0.65})`}
         style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
         opacity={leafScale}
       />
 
+      {/* Vase - drawn AFTER stem so it covers the stem base */}
+      <path
+        d="M38 95 L36 111 Q36 115 50 115 Q64 115 64 111 L62 95 Z"
+        fill={v.vase}
+        stroke={v.vaseAccent}
+        strokeWidth="1"
+        className="dark:stroke-white/40"
+      />
+      <ellipse cx="50" cy="95" rx="13" ry="3" fill={v.vaseAccent} opacity="0.5" />
+
       {/* Petals */}
       {angles.map((angle, i) => {
         const cx = 50 + Math.cos((angle * Math.PI) / 180) * 12 * petalScale;
-        const cy = 92 - stemHeight + Math.sin((angle * Math.PI) / 180) * 12 * petalScale;
+        const cy = 95 - stemHeight + Math.sin((angle * Math.PI) / 180) * 12 * petalScale;
         return (
           <ellipse
             key={i}
@@ -133,7 +133,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
       {/* Center */}
       <circle
         cx="50"
-        cy={92 - stemHeight}
+        cy={95 - stemHeight}
         r={5 * centerScale}
         fill={v.center}
         opacity={centerScale}
