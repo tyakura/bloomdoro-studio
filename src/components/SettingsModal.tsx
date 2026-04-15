@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Settings, X, Upload, Link, Flower2, Image, Volume2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Settings, X, Upload, Link, Flower2, Image, Volume2, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -119,6 +119,9 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
         </div>
 
         <div className="space-y-6">
+          {/* Dark Mode Toggle */}
+          <DarkModeToggle />
+
           {/* Garden button for mobile */}
           {showGarden && onGardenOpen && (
             <div>
