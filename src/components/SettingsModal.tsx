@@ -22,6 +22,47 @@ interface SettingsModalProps {
   onOverlayChange?: (val: number) => void;
 }
 
+function DarkModeToggle() {
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDark]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") {
+      setIsDark(true);
+    } else if (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      setIsDark(true);
+    }
+  }, []);
+
+  return (
+    <div>
+      <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+        {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+        Dark Mode
+      </h3>
+      <button
+        onClick={() => setIsDark(!isDark)}
+        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+          isDark ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+        }`}
+      >
+        <span className="text-sm font-medium">{isDark ? "Dark Mode Aktif" : "Light Mode Aktif"}</span>
+        {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+      </button>
+    </div>
+  );
+}
+
 export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage, overlayOpacity = 70, onOverlayChange }: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
