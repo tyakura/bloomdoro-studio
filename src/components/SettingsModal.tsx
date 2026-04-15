@@ -39,8 +39,6 @@ function DarkModeToggle() {
     const saved = localStorage.getItem("theme");
     if (saved === "dark") {
       setIsDark(true);
-    } else if (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setIsDark(true);
     }
   }, []);
 
