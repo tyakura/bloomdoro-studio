@@ -67,6 +67,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         fill={v.vase}
         stroke={v.vaseAccent}
         strokeWidth="1"
+        className="dark:stroke-white/40"
       />
       <ellipse cx="50" cy="92" rx="13" ry="3" fill={v.vaseAccent} opacity="0.5" />
 
@@ -81,6 +82,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         strokeLinecap="round"
         style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
         opacity={p > 0 ? 1 : 0}
+        className="dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]"
       />
 
       {/* Left leaf */}
@@ -122,6 +124,8 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
             opacity={petalScale * 0.85}
             transform={`rotate(${angle} ${cx} ${cy})`}
             style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
+            className="dark:stroke-white/25"
+            strokeWidth={petalScale > 0.1 ? 0.5 : 0}
           />
         );
       })}
@@ -134,6 +138,8 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         fill={v.center}
         opacity={centerScale}
         style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
+        className="dark:stroke-white/30"
+        strokeWidth={centerScale > 0.1 ? 0.8 : 0}
       />
     </svg>
   );
