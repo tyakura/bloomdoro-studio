@@ -1,4 +1,4 @@
-import { Flower2, X } from "lucide-react";
+import { Flower2, X, PartyPopper } from "lucide-react";
 import type { FlowerVariant } from "./GrowingFlower";
 
 const TOTAL_SLOTS = 20;
@@ -66,7 +66,10 @@ export function Garden({ gardenFlowers, isOpen, onClose }: GardenProps) {
         </button>
 
         <div className="text-center mb-6">
-          <h2 className="font-display text-xl font-bold text-foreground">🌸 My Garden</h2>
+          <h2 className="font-display text-xl font-bold text-foreground inline-flex items-center gap-2 justify-center">
+            <Flower2 className="w-5 h-5 text-primary" />
+            My Garden
+          </h2>
           <p className="text-sm text-muted-foreground mt-1">
             {filledSlots}/{TOTAL_SLOTS} bunga terkumpul
           </p>
@@ -92,8 +95,9 @@ export function Garden({ gardenFlowers, isOpen, onClose }: GardenProps) {
         </div>
 
         {filledSlots >= TOTAL_SLOTS && (
-          <p className="text-center text-sm text-primary font-semibold mt-4">
-            🎉 Taman kamu sudah penuh! Luar biasa!
+          <p className="text-center text-sm text-primary font-semibold mt-4 inline-flex items-center gap-1.5 justify-center w-full">
+            <PartyPopper className="w-4 h-4" />
+            Taman kamu sudah penuh! Luar biasa!
           </p>
         )}
       </div>

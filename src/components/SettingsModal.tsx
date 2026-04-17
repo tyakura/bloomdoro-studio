@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from "react";
-import { Settings, X, Upload, Link, Flower2, Image, Volume2, Moon, Sun } from "lucide-react";
+import { Settings, X, Upload, Link, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
 const AMBIENT_SOUNDS = [
-  { id: "rain", label: "🌧️ Rain", url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
-  { id: "fire", label: "🔥 Fire", url: "https://cdn.freesound.org/previews/277/277021_4548252-lq.mp3" },
-  { id: "birds", label: "🐦 Birds", url: "https://cdn.freesound.org/previews/531/531015_6271029-lq.mp3" },
-  { id: "waves", label: "🌊 Waves", url: "https://cdn.freesound.org/previews/467/467539_5765668-lq.mp3" },
+  { id: "rain", label: "Rain", icon: CloudRain, url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
+  { id: "fire", label: "Fire", icon: Flame, url: "https://cdn.freesound.org/previews/277/277021_4548252-lq.mp3" },
+  { id: "birds", label: "Birds", icon: Bird, url: "https://cdn.freesound.org/previews/531/531015_6271029-lq.mp3" },
+  { id: "waves", label: "Waves", icon: Waves, url: "https://cdn.freesound.org/previews/467/467539_5765668-lq.mp3" },
 ];
 
 interface SettingsModalProps {
@@ -181,26 +181,31 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
             <div>
               <h3 className="font-display font-semibold text-sm text-foreground mb-3">Ambient Sounds</h3>
               <div className="grid grid-cols-2 gap-2">
-                {AMBIENT_SOUNDS.map((sound) => (
-                  <button
-                    key={sound.id}
-                    onClick={() => toggleSound(sound.id)}
-                    className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors ${
-                      activeSound === sound.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary hover:bg-muted text-foreground"
-                    }`}
-                  >
-                    {sound.label}
-                  </button>
-                ))}
+                {AMBIENT_SOUNDS.map((sound) => {
+                  const Icon = sound.icon;
+                  return (
+                    <button
+                      key={sound.id}
+                      onClick={() => toggleSound(sound.id)}
+                      className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
+                        activeSound === sound.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary hover:bg-muted text-foreground"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {sound.label}
+                    </button>
+                  );
+                })}
               </div>
               {activeSound && (
                 <button
                   onClick={stopAmbient}
-                  className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors"
+                  className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
                 >
-                  🔇 Matikan
+                  <VolumeOff className="w-4 h-4" />
+                  Matikan
                 </button>
               )}
             </div>

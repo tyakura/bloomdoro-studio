@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, CloudRain, Flame, Bird, Waves, VolumeOff } from "lucide-react";
 
 const AMBIENT_SOUNDS = [
-  { id: "rain", label: "🌧️ Rain", url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
-  { id: "fire", label: "🔥 Fire", url: "https://cdn.freesound.org/previews/277/277021_4548252-lq.mp3" },
-  { id: "birds", label: "🐦 Birds", url: "https://cdn.freesound.org/previews/531/531015_6271029-lq.mp3" },
-  { id: "waves", label: "🌊 Waves", url: "https://cdn.freesound.org/previews/467/467539_5765668-lq.mp3" },
+  { id: "rain", label: "Rain", icon: CloudRain, url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
+  { id: "fire", label: "Fire", icon: Flame, url: "https://cdn.freesound.org/previews/277/277021_4548252-lq.mp3" },
+  { id: "birds", label: "Birds", icon: Bird, url: "https://cdn.freesound.org/previews/531/531015_6271029-lq.mp3" },
+  { id: "waves", label: "Waves", icon: Waves, url: "https://cdn.freesound.org/previews/467/467539_5765668-lq.mp3" },
 ];
 
 export function AmbientSounds() {
@@ -57,26 +57,31 @@ export function AmbientSounds() {
         Ambient
       </button>
       {isOpen && (
-        <div className="absolute top-full mt-2 right-0 bg-card border border-border rounded-xl shadow-lg p-3 flex flex-col gap-1.5 min-w-[150px] z-[130]">
-          {AMBIENT_SOUNDS.map((sound) => (
-            <button
-              key={sound.id}
-              onClick={() => toggleSound(sound.id)}
-              className={`px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                activeSound === sound.id
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted text-foreground"
-              }`}
-            >
-              {sound.label}
-            </button>
-          ))}
+        <div className="absolute top-full mt-2 right-0 bg-card border border-border rounded-xl shadow-lg p-3 flex flex-col gap-1.5 min-w-[170px] z-[130]">
+          {AMBIENT_SOUNDS.map((sound) => {
+            const Icon = sound.icon;
+            return (
+              <button
+                key={sound.id}
+                onClick={() => toggleSound(sound.id)}
+                className={`px-3 py-2 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
+                  activeSound === sound.id
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted text-foreground"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {sound.label}
+              </button>
+            );
+          })}
           {activeSound && (
             <button
               onClick={stopAll}
-              className="px-3 py-2 rounded-lg text-sm text-left transition-colors text-destructive hover:bg-destructive/10"
+              className="px-3 py-2 rounded-lg text-sm text-left transition-colors text-destructive hover:bg-destructive/10 flex items-center gap-2"
             >
-              🔇 Matikan
+              <VolumeOff className="w-4 h-4" />
+              Matikan
             </button>
           )}
         </div>
