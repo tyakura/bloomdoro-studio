@@ -136,14 +136,16 @@ export function TimerSetup({ onStart, defaultTheme = "flower" }: TimerSetupProps
       {showBreak && (
         <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-sm w-full">
           <div className="flex items-center justify-between w-full">
-            <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
-              ☕ Break Time
+            <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase inline-flex items-center gap-1.5">
+              <Coffee className="w-3.5 h-3.5" />
+              Break Time
             </span>
             <button
               onClick={() => { setShowBreak(false); setRepeat(false); }}
               className="text-muted-foreground hover:text-foreground text-sm"
+              aria-label="Close"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
 
