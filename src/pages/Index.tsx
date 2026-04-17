@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square } from "lucide-react";
+import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
@@ -242,7 +242,10 @@ const Index = () => {
               </TimerRing>
 
               {timer.status === "idle" && (
-                <p className="text-badge-text text-sm">👆 Klik play untuk memulai sesi!</p>
+                <p className="text-badge-text text-sm inline-flex items-center gap-1.5">
+                  <MousePointerClick className="w-4 h-4" />
+                  Klik play untuk memulai sesi!
+                </p>
               )}
 
               <div className="flex items-center gap-4">
