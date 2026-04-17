@@ -97,8 +97,8 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
       />
 
       {/* Flag on moon */}
-      {isLanding && landingProgress > 0.5 && (
-        <g opacity={Math.min(1, (landingProgress - 0.5) * 4)} style={{ transition: "all 0.5s ease-out" }}>
+      {isLanded && (
+        <g opacity={1} style={{ transition: "all 0.5s ease-out" }}>
           <line x1="80" y1="58" x2="80" y2="42" stroke="hsl(var(--foreground))" strokeWidth="1.2" />
           <rect x="80" y="42" width="13" height="8" fill="hsl(var(--primary))" rx="1" />
         </g>
