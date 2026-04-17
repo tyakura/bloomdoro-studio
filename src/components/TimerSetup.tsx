@@ -41,7 +41,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower" }: TimerSetupProps
             >
               <Flower2 className={`w-8 h-8 ${theme === "flower" ? "text-primary" : "text-muted-foreground"}`} />
               <span className={`text-sm font-medium ${theme === "flower" ? "text-primary" : "text-muted-foreground"}`}>
-                🌸 Bunga Tumbuh
+                Bunga Tumbuh
               </span>
             </button>
             <button
@@ -54,7 +54,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower" }: TimerSetupProps
             >
               <Rocket className={`w-8 h-8 ${theme === "rocket" ? "text-primary" : "text-muted-foreground"}`} />
               <span className={`text-sm font-medium ${theme === "rocket" ? "text-primary" : "text-muted-foreground"}`}>
-                🚀 Roket ke Bulan
+                Roket ke Bulan
               </span>
             </button>
           </div>

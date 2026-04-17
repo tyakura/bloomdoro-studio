@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { RotateCcw, ArrowLeft, PartyPopper } from "lucide-react";
+import { RotateCcw, ArrowLeft, PartyPopper, Flower2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface CompletionScreenProps {
@@ -33,14 +33,15 @@ export function CompletionScreen({ lastMinutes, onReuse, onChangeTime, cycleCoun
 
       <div className="text-center space-y-2">
         <h2 className="font-display text-2xl font-bold text-foreground">
-          Sesi Selesai! 🎉
+          Sesi Selesai!
         </h2>
         <p className="text-muted-foreground text-sm">
           Kamu telah menyelesaikan sesi fokus {lastMinutes} menit. Kerja bagus!
         </p>
         {cycleCount > 1 && (
-          <p className="text-primary text-sm font-medium">
-            🌸 {cycleCount} putaran selesai — {cycleCount} bunga ditambahkan ke garden!
+          <p className="text-primary text-sm font-medium inline-flex items-center gap-1.5 justify-center">
+            <Flower2 className="w-4 h-4" />
+            {cycleCount} putaran selesai — {cycleCount} bunga ditambahkan ke garden!
           </p>
         )}
       </div>
