@@ -200,12 +200,12 @@ const Index = () => {
           <div className={`flex ${isMobile ? 'flex-col items-center gap-8' : 'flex-row items-center justify-center'}`} style={!isMobile ? { gap: '120px' } : undefined}>
             {/* Animation on top for mobile */}
             {isMobile && (
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 my-6">
                 {phase === "focus" && (
                   theme === "flower" ? (
                     <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
                   ) : (
-                    <GrowingRocket progress={timer.progress} horizontal />
+                    <GrowingRocket progress={timer.progress} />
                   )
                 )}
                 {phase === "break" && (
@@ -224,7 +224,12 @@ const Index = () => {
                   ? "bg-accent/20 text-accent"
                   : "bg-badge-bg text-badge-text"
               }`}>
-                {phase === "focus" ? "Focus Session" : "☕ Break Time"}
+                {phase === "focus" ? "Focus Session" : (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Coffee className="w-3.5 h-3.5" />
+                    Break Time
+                  </span>
+                )}
               </span>
 
               {repeatMode && (
@@ -288,7 +293,7 @@ const Index = () => {
 
             {/* Animation on right for desktop */}
             {!isMobile && (
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 mx-8">
                 {phase === "focus" && (
                   theme === "flower" ? (
                     <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
