@@ -156,6 +156,13 @@ const Index = () => {
       )}
       {bgImage && <div className="fixed inset-0 z-0" style={{ backgroundColor: `hsl(var(--background) / ${bgOverlay / 100})` }} />}
 
+      {/* Easter egg background (after 5min in repeat mode, lasts 3min) */}
+      <EasterEggBackground
+        elapsedSeconds={repeatElapsed}
+        active={repeatMode && phase === "focus"}
+        theme={theme}
+      />
+
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
         <BloomdoroLogo />
