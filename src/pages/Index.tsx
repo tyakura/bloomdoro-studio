@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
@@ -12,6 +12,7 @@ import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
+import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
