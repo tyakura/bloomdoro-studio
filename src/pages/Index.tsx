@@ -37,6 +37,14 @@ const Index = () => {
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
 
+  // Track total elapsed seconds in repeat mode for easter egg trigger
+  const [repeatElapsed, setRepeatElapsed] = useState(0);
+  useEffect(() => {
+    if (!repeatMode || phase !== "focus" || timer.status !== "running") return;
+    const id = setInterval(() => setRepeatElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [repeatMode, phase, timer.status]);
+
   const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean) => {
     setCustomMinutes(minutes);
     setBreakMinutes(breakMins);
