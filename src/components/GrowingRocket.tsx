@@ -15,10 +15,11 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
   const isLanded = p >= 0.95;
 
   // Rocket starts on landing pad with fin tips touching pad surface.
-  const baseY = 145;
+  // Longer flight distance from pad to moon.
+  const baseY = 175;
   const rocketY = isLanded
-    ? 52 // resting just above the moon surface
-    : baseY - liftoffProgress * 95;
+    ? 55 // resting just above the moon surface
+    : baseY - liftoffProgress * 130;
 
   const rocketRotation = 0; // never flip
 
@@ -30,11 +31,11 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
   const earthScale = Math.max(0.6, 1 - liftoffProgress * 0.3);
   const smokeOpacity = isLanded ? 0 : ignitionProgress * (1 - Math.max(0, (liftoffProgress - 0.5) / 0.5)) * 0.8;
 
-  // Landing pad top aligned with fin tips (y=140)
-  const earthY = 148;
+  // Landing pad top aligned with fin tips
+  const earthY = 178;
 
   return (
-    <svg viewBox="0 0 200 200" className="w-64 h-64" style={{ overflow: "visible" }}>
+    <svg viewBox="0 0 200 230" className="w-64 h-72" style={{ overflow: "visible" }}>
       <defs>
         <radialGradient id="flameOuter" cx="50%" cy="30%" r="60%">
           <stop offset="0%" stopColor="hsl(45 100% 60%)" />

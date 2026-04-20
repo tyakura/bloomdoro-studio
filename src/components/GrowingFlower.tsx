@@ -44,36 +44,59 @@ const VARIANTS = [
   },
 ];
 
+// Pointed oval leaf shape (almond-like) centered at (cx, cy), pointing along +X.
+// scale grows from 0..1 (size), length is the half-length, width is half-width.
+function leafPath(cx: number, cy: number, length: number, width: number) {
+  const x1 = cx - length;
+  const x2 = cx + length;
+  const cy1 = cy - width;
+  const cy2 = cy + width;
+  // Two cubic curves forming a pointed almond/oval with sharp tips
+  return `M ${x1} ${cy} C ${cx - length * 0.3} ${cy1}, ${cx + length * 0.3} ${cy1}, ${x2} ${cy} C ${cx + length * 0.3} ${cy2}, ${cx - length * 0.3} ${cy2}, ${x1} ${cy} Z`;
+}
+
 export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
   const p = Math.max(0, Math.min(1, progress));
   const v = VARIANTS[variant % VARIANTS.length];
 
-  const stemHeight = Math.min(1, p / 0.4) * 60;
+  // Longer stem so flower is farther from vase
+  const maxStem = 85;
+  const stemHeight = Math.min(1, p / 0.4) * maxStem;
   const leafScale = Math.max(0, Math.min(1, (p - 0.2) / 0.4));
   const petalScale = Math.max(0, Math.min(1, (p - 0.4) / 0.6));
   const centerScale = Math.max(0, Math.min(1, (p - 0.6) / 0.4));
-  // Flower head grows larger over time (more dramatic bloom)
   const bloomBoost = 1 + Math.max(0, (p - 0.5)) * 0.3;
 
   const angles = Array.from({ length: v.petalCount }, (_, i) => (360 / v.petalCount) * i);
 
+  // Leaves attach to stem points (relative to base y=120 since vase is lower now)
+  const baseY = 120;
+  const leftLeafY = baseY - stemHeight * 0.45;
+  const rightLeafY = baseY - stemHeight * 0.7;
+
+  // Leaf grows from small bud near stem to a pointed oval
+  const leftLeafLen = 12 * leafScale;
+  const leftLeafWid = 4.5 * leafScale;
+  const rightLeafLen = 12 * leafScale;
+  const rightLeafWid = 4.5 * leafScale;
+
   return (
     <svg
-      viewBox="0 0 100 120"
-      className="w-64 h-64"
+      viewBox="0 0 100 145"
+      className="w-64 h-72"
       style={{ overflow: "visible" }}
     >
       {/* Plant group (stem + leaves + flower) sways. Vase stays still. */}
       <g
         className="animate-sway"
-        style={{ transformOrigin: "50px 95px" }}
+        style={{ transformOrigin: `50px ${baseY}px` }}
       >
         {/* Stem */}
         <line
           x1="50"
-          y1="95"
+          y1={baseY}
           x2="50"
-          y2={95 - stemHeight}
+          y2={baseY - stemHeight}
           stroke="hsl(130 40% 45%)"
           strokeWidth="2.5"
           strokeLinecap="round"
@@ -82,34 +105,32 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
           className="dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]"
         />
 
-        {/* Left leaf */}
-        <ellipse
-          cx="42"
-          cy={95 - stemHeight * 0.5}
-          rx={9 * leafScale}
-          ry={4.5 * leafScale}
+        {/* Left leaf - pointed oval, emerges from stem */}
+        <path
+          d={leafPath(50 - leftLeafLen, leftLeafY, leftLeafLen, leftLeafWid)}
           fill="hsl(130 40% 45%)"
-          transform={`rotate(-30 42 ${95 - stemHeight * 0.5})`}
+          transform={`rotate(-25 50 ${leftLeafY})`}
           style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
           opacity={leafScale}
+          className="dark:stroke-white/25"
+          strokeWidth={leafScale > 0.1 ? 0.5 : 0}
         />
 
-        {/* Right leaf */}
-        <ellipse
-          cx="58"
-          cy={95 - stemHeight * 0.65}
-          rx={9 * leafScale}
-          ry={4.5 * leafScale}
+        {/* Right leaf - pointed oval, emerges from stem */}
+        <path
+          d={leafPath(50 + rightLeafLen, rightLeafY, rightLeafLen, rightLeafWid)}
           fill="hsl(130 40% 50%)"
-          transform={`rotate(30 58 ${95 - stemHeight * 0.65})`}
+          transform={`rotate(25 50 ${rightLeafY})`}
           style={{ transition: "all 1.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
           opacity={leafScale}
+          className="dark:stroke-white/25"
+          strokeWidth={leafScale > 0.1 ? 0.5 : 0}
         />
 
         {/* Petals */}
         {angles.map((angle, i) => {
           const cx = 50 + Math.cos((angle * Math.PI) / 180) * 14 * petalScale * bloomBoost;
-          const cy = 95 - stemHeight + Math.sin((angle * Math.PI) / 180) * 14 * petalScale * bloomBoost;
+          const cy = baseY - stemHeight + Math.sin((angle * Math.PI) / 180) * 14 * petalScale * bloomBoost;
           return (
             <ellipse
               key={i}
@@ -130,7 +151,7 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
         {/* Center */}
         <circle
           cx="50"
-          cy={95 - stemHeight}
+          cy={baseY - stemHeight}
           r={6.5 * centerScale * bloomBoost}
           fill={v.center}
           opacity={centerScale}
@@ -142,13 +163,13 @@ export function GrowingFlower({ progress, variant = 0 }: GrowingFlowerProps) {
 
       {/* Vase - stays still, drawn AFTER plant group so it sits in front */}
       <path
-        d="M38 95 L36 111 Q36 115 50 115 Q64 115 64 111 L62 95 Z"
+        d={`M38 ${baseY} L36 ${baseY + 16} Q36 ${baseY + 20} 50 ${baseY + 20} Q64 ${baseY + 20} 64 ${baseY + 16} L62 ${baseY} Z`}
         fill={v.vase}
         stroke={v.vaseAccent}
         strokeWidth="1"
         className="dark:stroke-white/40"
       />
-      <ellipse cx="50" cy="95" rx="13" ry="3" fill={v.vaseAccent} opacity="0.5" />
+      <ellipse cx="50" cy={baseY} rx="13" ry="3" fill={v.vaseAccent} opacity="0.5" />
     </svg>
   );
 }
