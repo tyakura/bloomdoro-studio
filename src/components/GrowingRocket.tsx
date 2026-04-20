@@ -15,10 +15,11 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
   const isLanded = p >= 0.95;
 
   // Rocket starts on landing pad with fin tips touching pad surface.
-  const baseY = 145;
+  // Longer flight distance from pad to moon.
+  const baseY = 175;
   const rocketY = isLanded
-    ? 52 // resting just above the moon surface
-    : baseY - liftoffProgress * 95;
+    ? 55 // resting just above the moon surface
+    : baseY - liftoffProgress * 130;
 
   const rocketRotation = 0; // never flip
 
@@ -30,11 +31,11 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
   const earthScale = Math.max(0.6, 1 - liftoffProgress * 0.3);
   const smokeOpacity = isLanded ? 0 : ignitionProgress * (1 - Math.max(0, (liftoffProgress - 0.5) / 0.5)) * 0.8;
 
-  // Landing pad top aligned with fin tips (y=140)
-  const earthY = 148;
+  // Landing pad top aligned with fin tips
+  const earthY = 178;
 
   return (
-    <svg viewBox="0 0 200 200" className="w-64 h-64" style={{ overflow: "visible" }}>
+    <svg viewBox="0 0 200 230" className="w-64 h-72" style={{ overflow: "visible" }}>
       <defs>
         <radialGradient id="flameOuter" cx="50%" cy="30%" r="60%">
           <stop offset="0%" stopColor="hsl(45 100% 60%)" />
@@ -150,23 +151,23 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
       {/* Rocket group - flame drawn FIRST (behind), then body on top */}
       <g style={{
         transform: `translateY(${rocketY - baseY}px) rotate(${rocketRotation}deg)`,
-        transformOrigin: "100px 115px",
+        transformOrigin: "100px 145px",
         transition: "transform 1s ease-out"
       }}>
         {/* === FLAME (behind rocket) === */}
         {flameScale > 0.1 && (
           <>
             {/* Flame sparks */}
-            <circle cx="96" cy="148" r={1.8 * flameScale} fill="hsl(30 100% 60%)" opacity={flameScale * 0.6}>
-              <animate attributeName="cy" values="148;158;148" dur="0.4s" repeatCount="indefinite" />
+            <circle cx="96" cy="186" r={1.8 * flameScale} fill="hsl(30 100% 60%)" opacity={flameScale * 0.6}>
+              <animate attributeName="cy" values="186;196;186" dur="0.4s" repeatCount="indefinite" />
               <animate attributeName="opacity" values={`${flameScale * 0.6};0;${flameScale * 0.6}`} dur="0.4s" repeatCount="indefinite" />
             </circle>
-            <circle cx="104" cy="150" r={1.3 * flameScale} fill="hsl(40 100% 65%)" opacity={flameScale * 0.5}>
-              <animate attributeName="cy" values="150;160;150" dur="0.35s" repeatCount="indefinite" />
+            <circle cx="104" cy="188" r={1.3 * flameScale} fill="hsl(40 100% 65%)" opacity={flameScale * 0.5}>
+              <animate attributeName="cy" values="188;198;188" dur="0.35s" repeatCount="indefinite" />
               <animate attributeName="opacity" values={`${flameScale * 0.5};0;${flameScale * 0.5}`} dur="0.35s" repeatCount="indefinite" />
             </circle>
-            <circle cx="100" cy="152" r={1.5 * flameScale} fill="hsl(25 90% 55%)" opacity={flameScale * 0.4}>
-              <animate attributeName="cy" values="152;164;152" dur="0.45s" repeatCount="indefinite" />
+            <circle cx="100" cy="190" r={1.5 * flameScale} fill="hsl(25 90% 55%)" opacity={flameScale * 0.4}>
+              <animate attributeName="cy" values="190;202;190" dur="0.45s" repeatCount="indefinite" />
               <animate attributeName="opacity" values={`${flameScale * 0.4};0;${flameScale * 0.4}`} dur="0.45s" repeatCount="indefinite" />
             </circle>
           </>
@@ -175,7 +176,7 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
         {/* Outer glow */}
         <ellipse
           cx="100"
-          cy="140"
+          cy="178"
           rx={9 * flameScale}
           ry={20 * flameScale}
           fill="url(#flameOuter)"
@@ -189,7 +190,7 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
         {/* Main flame */}
         <ellipse
           cx="100"
-          cy="138"
+          cy="176"
           rx={7 * flameScale}
           ry={16 * flameScale}
           fill="url(#flameInner)"
@@ -202,7 +203,7 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
         {/* Inner bright core */}
         <ellipse
           cx="100"
-          cy="136"
+          cy="174"
           rx={3.5 * flameScale}
           ry={9 * flameScale}
           fill="hsl(55 100% 90%)"
@@ -213,19 +214,19 @@ export function GrowingRocket({ progress }: GrowingRocketProps) {
 
         {/* === ROCKET BODY (on top of flame) === */}
         {/* Fins */}
-        <polygon points="90,127 81,140 90,133" fill="hsl(var(--primary))"
+        <polygon points="90,165 81,178 90,171" fill="hsl(var(--primary))"
           className="dark:stroke-white/30" strokeWidth="0.5" />
-        <polygon points="110,127 119,140 110,133" fill="hsl(var(--primary))"
+        <polygon points="110,165 119,178 110,171" fill="hsl(var(--primary))"
           className="dark:stroke-white/30" strokeWidth="0.5" />
         {/* Main body */}
-        <rect x="90" y="97" width="20" height="36" rx="4" fill="hsl(var(--foreground))"
+        <rect x="90" y="135" width="20" height="36" rx="4" fill="hsl(var(--foreground))"
           className="dark:stroke-white/50" strokeWidth="1" />
         {/* Nose cone */}
-        <polygon points="100,83 90,97 110,97" fill="hsl(var(--primary))"
+        <polygon points="100,121 90,135 110,135" fill="hsl(var(--primary))"
           className="dark:stroke-white/40" strokeWidth="0.8" />
         {/* Window */}
-        <circle cx="100" cy="107" r="5" fill="hsl(var(--badge-bg))" />
-        <circle cx="100" cy="107" r="3" fill="hsl(var(--primary))" opacity="0.6" />
+        <circle cx="100" cy="145" r="5" fill="hsl(var(--badge-bg))" />
+        <circle cx="100" cy="145" r="3" fill="hsl(var(--primary))" opacity="0.6" />
       </g>
     </svg>
   );

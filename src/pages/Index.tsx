@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
@@ -12,6 +12,7 @@ import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
+import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
@@ -36,11 +37,20 @@ const Index = () => {
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
 
+  // Track total elapsed seconds in repeat mode for easter egg trigger
+  const [repeatElapsed, setRepeatElapsed] = useState(0);
+  useEffect(() => {
+    if (!repeatMode || phase !== "focus" || timer.status !== "running") return;
+    const id = setInterval(() => setRepeatElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [repeatMode, phase, timer.status]);
+
   const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean) => {
     setCustomMinutes(minutes);
     setBreakMinutes(breakMins);
     setRepeatMode(repeat);
     setCycleCount(0);
+    setRepeatElapsed(0);
     setTheme(selectedTheme);
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     timer.reset(minutes);
@@ -74,6 +84,7 @@ const Index = () => {
   const handleReuse = useCallback(() => {
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     setCycleCount(0);
+    setRepeatElapsed(0);
     timer.reset(customMinutes);
     setPhase("focus");
     setTimeout(() => timer.start(), 50);
@@ -144,6 +155,13 @@ const Index = () => {
         )
       )}
       {bgImage && <div className="fixed inset-0 z-0" style={{ backgroundColor: `hsl(var(--background) / ${bgOverlay / 100})` }} />}
+
+      {/* Easter egg background (after 5min in repeat mode, lasts 3min) */}
+      <EasterEggBackground
+        elapsedSeconds={repeatElapsed}
+        active={repeatMode && phase === "focus"}
+        theme={theme}
+      />
 
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
