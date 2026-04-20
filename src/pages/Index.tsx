@@ -50,6 +50,7 @@ const Index = () => {
     setBreakMinutes(breakMins);
     setRepeatMode(repeat);
     setCycleCount(0);
+    setRepeatElapsed(0);
     setTheme(selectedTheme);
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     timer.reset(minutes);
@@ -83,6 +84,7 @@ const Index = () => {
   const handleReuse = useCallback(() => {
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     setCycleCount(0);
+    setRepeatElapsed(0);
     timer.reset(customMinutes);
     setPhase("focus");
     setTimeout(() => timer.start(), 50);
