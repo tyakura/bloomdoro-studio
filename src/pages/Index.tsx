@@ -12,6 +12,7 @@ import { GrowingRocket } from "@/components/GrowingRocket";
 import { CompletionScreen } from "@/components/CompletionScreen";
 import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
+import { HelpGuide } from "@/components/HelpGuide";
 import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -336,6 +337,9 @@ const Index = () => {
 
       {/* Sticky Notes */}
       <StickyNotes />
+
+      {/* Help Guide */}
+      <HelpGuide />
     </div>
   );
 };
