@@ -20,6 +20,8 @@ interface SettingsModalProps {
   bgImage?: string | null;
   overlayOpacity?: number;
   onOverlayChange?: (val: number) => void;
+  glassOpacity?: number;
+  onGlassChange?: (val: number) => void;
 }
 
 function DarkModeToggle() {
@@ -61,7 +63,7 @@ function DarkModeToggle() {
   );
 }
 
-export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage, overlayOpacity = 70, onOverlayChange }: SettingsModalProps) {
+export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage, overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange }: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [bgUrl, setBgUrl] = useState("");
