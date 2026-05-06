@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HelpCircle, Timer, Flower2, Rocket, Music, Settings, StickyNote, Repeat, Sparkles } from "lucide-react";
+import { HelpCircle, Timer, Flower2, Rocket, Music, Settings, StickyNote, Repeat, Sparkles, Image as ImageIcon, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,14 +35,29 @@ const FAQ = [
     a: "Buka Settings, lalu masukkan link YouTube atau upload file musik lokal kamu untuk diputar selama sesi.",
   },
   {
+    icon: Plus,
+    q: "Apa isi tombol + di pojok kanan bawah?",
+    a: "Klik untuk membuka 3 pilihan: Sticky Note (catatan warna-warni), Media (gambar/video draggable), dan Talk with AI (chat dengan Bloomdoro AI).",
+  },
+  {
     icon: StickyNote,
     q: "Cara membuat sticky note?",
-    a: "Klik tombol + di pojok kanan bawah, isi judul/deskripsi, pilih warna, lalu drag note ke posisi yang kamu mau.",
+    a: "Klik + → Sticky Note. Isi judul/deskripsi (Enter untuk membuat baris baru / list), pilih warna, lalu drag note ke posisi yang kamu mau.",
+  },
+  {
+    icon: ImageIcon,
+    q: "Apa itu Media note?",
+    a: "Pilih + → Media untuk menempel gambar atau video di layar. Video akan otomatis berulang. Drag untuk pindah, tarik pojok kanan-bawah untuk memperbesar.",
+  },
+  {
+    icon: Sparkles,
+    q: "Apa itu Talk with AI? (NEW)",
+    a: "Pilih + → Talk with AI untuk membuka chat dengan Bloomdoro AI. AI bisa membantu riset topik, menjawab pertanyaan, atau sekedar mengobrol santai saat istirahat.",
   },
   {
     icon: Settings,
-    q: "Bagaimana mengganti background?",
-    a: "Buka Settings → Background, upload gambar atau video, lalu atur opacity overlay sesuai selera.",
+    q: "Bagaimana mengganti background & efek kaca?",
+    a: "Buka Settings → Background, upload gambar/video, atur Overlay Opacity untuk gelap-terang, dan atur Buram Kotak Waktu (Glass) supaya kotak timer transparan dan kamu bisa lihat background.",
   },
   {
     icon: Rocket,

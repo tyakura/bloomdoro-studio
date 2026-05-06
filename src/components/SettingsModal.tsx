@@ -20,6 +20,8 @@ interface SettingsModalProps {
   bgImage?: string | null;
   overlayOpacity?: number;
   onOverlayChange?: (val: number) => void;
+  glassOpacity?: number;
+  onGlassChange?: (val: number) => void;
 }
 
 function DarkModeToggle() {
@@ -61,7 +63,7 @@ function DarkModeToggle() {
   );
 }
 
-export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage, overlayOpacity = 70, onOverlayChange }: SettingsModalProps) {
+export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage, overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange }: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [bgUrl, setBgUrl] = useState("");
@@ -270,6 +272,16 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
                     <Slider
                       value={[overlayOpacity]}
                       onValueChange={(val) => onOverlayChange?.(val[0])}
+                      max={100}
+                      min={0}
+                      step={5}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Buram Kotak Waktu (Glass): {glassOpacity}%</label>
+                    <Slider
+                      value={[glassOpacity]}
+                      onValueChange={(val) => onGlassChange?.(val[0])}
                       max={100}
                       min={0}
                       step={5}
