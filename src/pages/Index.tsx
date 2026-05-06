@@ -34,6 +34,7 @@ const Index = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgIsVideo, setBgIsVideo] = useState(false);
   const [bgOverlay, setBgOverlay] = useState(70);
+  const [glassOpacity, setGlassOpacity] = useState(40); // timer card glass opacity when bg active
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
@@ -190,6 +191,8 @@ const Index = () => {
             bgImage={bgImage}
             overlayOpacity={bgOverlay}
             onOverlayChange={setBgOverlay}
+            glassOpacity={glassOpacity}
+            onGlassChange={setGlassOpacity}
           />
         </div>
       </header>
@@ -237,7 +240,14 @@ const Index = () => {
             )}
 
             {/* Timer Card */}
-            <div className="flex flex-col items-center gap-6 sm:gap-8 p-8 sm:p-10 rounded-2xl bg-card border border-border shadow-sm min-w-[320px] sm:min-w-[420px]">
+            <div
+              className={`flex flex-col items-center gap-6 sm:gap-8 p-8 sm:p-10 rounded-2xl border shadow-sm min-w-[320px] sm:min-w-[420px] ${bgImage ? 'border-white/30' : 'bg-card border-border'}`}
+              style={bgImage ? {
+                backgroundColor: `hsl(var(--card) / ${glassOpacity / 100})`,
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+              } : undefined}
+            >
               <span className={`px-4 py-1.5 rounded-full font-display font-semibold text-sm tracking-wide uppercase ${
                 phase === "break"
                   ? "bg-accent/20 text-accent"
