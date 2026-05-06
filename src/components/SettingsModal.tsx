@@ -277,6 +277,16 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
                       step={5}
                     />
                   </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1 block">Buram Kotak Waktu (Glass): {glassOpacity}%</label>
+                    <Slider
+                      value={[glassOpacity]}
+                      onValueChange={(val) => onGlassChange?.(val[0])}
+                      max={100}
+                      min={0}
+                      step={5}
+                    />
+                  </div>
                   <Button
                     onClick={() => onBgChange?.(null, false)}
                     variant="outline"
