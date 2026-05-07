@@ -30,7 +30,7 @@ interface StickyNote extends BaseNote {
 interface MediaNote extends BaseNote {
   type: "media";
   mediaUrl: string;
-  isVideo: boolean;
+  kind: "image" | "video" | "youtube";
   date: string;
 }
 
@@ -39,6 +39,8 @@ interface ChatMsg { role: "user" | "assistant"; content: string }
 interface AiNote extends BaseNote {
   type: "ai";
   messages: ChatMsg[];
+  mode: ChatMode;
+  sessionId: string;
 }
 
 type AnyNote = StickyNote | MediaNote | AiNote;
@@ -50,6 +52,15 @@ const COLOR_SWATCHES = [
   { bg: "#dcfce7", border: "#86efac", class: "bg-green-100 border-green-300 text-green-900" },
   { bg: "#f3e8ff", border: "#d8b4fe", class: "bg-purple-100 border-purple-300 text-purple-900" },
 ];
+
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/,
+    /youtube\.com\/shorts\/([\w-]{11})/,
+  ];
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+  return null;
+}
 
 const isLightColor = (hex: string) => {
   const r = parseInt(hex.slice(1, 3), 16);
