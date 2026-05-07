@@ -147,11 +147,12 @@ export function StickyNotes() {
           onDelete={deleteNote}
           onResizeDown={handleResizeDown}
           onAiUpdate={updateAiMessages}
+          onAiModeChange={updateAiMode}
         />
       ))}
 
       {creating === "sticky" && <StickyCreator today={today} onClose={() => setCreating(null)} onSave={addStickyNote} />}
-      {creating === "media" && <MediaCreator onClose={() => setCreating(null)} onSave={(u, v) => { addMediaNote(u, v); setCreating(null); }} />}
+      {creating === "media" && <MediaCreator onClose={() => setCreating(null)} onSave={(u, k) => { addMediaNote(u, k); setCreating(null); }} />}
 
       {/* FAB menu */}
       {menuOpen && (
