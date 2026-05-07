@@ -222,7 +222,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
         {phase === "setup" ? (
-          <TimerSetup onStart={handleStart} defaultTheme={theme} />
+          <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bgImage} glassOpacity={glassOpacity} />
         ) : phase === "complete" ? (
           <CompletionScreen
             lastMinutes={customMinutes}
