@@ -357,6 +357,9 @@ const Index = () => {
       {/* Garden Modal */}
       <Garden gardenFlowers={gardenFlowers} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
 
+      {/* AI Chat History */}
+      <ChatHistory isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
+
       {/* Sticky Notes */}
       <StickyNotes />
 
