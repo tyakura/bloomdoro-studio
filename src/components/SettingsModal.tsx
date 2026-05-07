@@ -13,15 +13,17 @@ const AMBIENT_SOUNDS = [
 
 interface SettingsModalProps {
   onMusicLoad: (url: string, name: string) => void;
-  showAmbient?: boolean;
   showGarden?: boolean;
   onGardenOpen?: () => void;
   onBgChange?: (url: string | null, isVideo: boolean) => void;
   bgImage?: string | null;
+  bgIsVideo?: boolean;
   overlayOpacity?: number;
   onOverlayChange?: (val: number) => void;
   glassOpacity?: number;
   onGlassChange?: (val: number) => void;
+  bgVideoMuted?: boolean;
+  onBgVideoMutedChange?: (v: boolean) => void;
 }
 
 function DarkModeToggle() {
@@ -63,7 +65,7 @@ function DarkModeToggle() {
   );
 }
 
-export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = false, onGardenOpen, onBgChange, bgImage, overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange }: SettingsModalProps) {
+export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, onBgChange, bgImage, bgIsVideo = false, overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange, bgVideoMuted = true, onBgVideoMutedChange }: SettingsModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [bgUrl, setBgUrl] = useState("");
@@ -178,8 +180,8 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
             </div>
           )}
 
-          {/* Ambient sounds for mobile */}
-          {showAmbient && (
+          {/* Ambient sounds (always in settings) */}
+          {true && (
             <div>
               <h3 className="font-display font-semibold text-sm text-foreground mb-3">Ambient Sounds</h3>
               <div className="grid grid-cols-2 gap-2">
@@ -287,6 +289,17 @@ export function SettingsModal({ onMusicLoad, showAmbient = false, showGarden = f
                       step={5}
                     />
                   </div>
+                  {bgIsVideo && (
+                    <button
+                      onClick={() => onBgVideoMutedChange?.(!bgVideoMuted)}
+                      className={`w-full px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors ${
+                        bgVideoMuted ? "bg-secondary text-secondary-foreground hover:bg-muted" : "bg-primary text-primary-foreground"
+                      }`}
+                    >
+                      {bgVideoMuted ? <VolumeOff className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      {bgVideoMuted ? "Suara Background OFF" : "Suara Background ON"}
+                    </button>
+                  )}
                   <Button
                     onClick={() => onBgChange?.(null, false)}
                     variant="outline"
