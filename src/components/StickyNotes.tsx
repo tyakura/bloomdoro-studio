@@ -271,9 +271,6 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
     <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
   );
 }
-    <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} />
-  );
-}
 
 function NoteHeader({ date, onDelete }: { date: string; onDelete: () => void }) {
   return (
