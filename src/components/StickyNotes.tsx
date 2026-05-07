@@ -198,12 +198,13 @@ function FabItem({ icon: Icon, label, onClick, badge }: { icon: any; label: stri
 }
 
 // ============ Note Card renderer ============
-function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate }: {
+function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
   note: AnyNote;
   onMouseDown: (e: React.MouseEvent, id: string) => void;
   onDelete: (id: string) => void;
   onResizeDown: (e: React.MouseEvent, n: AnyNote) => void;
   onAiUpdate: (id: string, msgs: ChatMsg[]) => void;
+  onAiModeChange: (id: string, mode: ChatMode) => void;
 }) {
   const baseStyle: React.CSSProperties = { left: note.x, top: note.y, width: note.width, height: note.height || undefined };
 
@@ -237,17 +238,26 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate }: {
     return (
       <div
         data-note-id={note.id}
-        className="fixed z-40 rounded-lg shadow-lg overflow-hidden cursor-grab active:cursor-grabbing select-none bg-card border-2 border-border"
+        className="fixed z-40 rounded-lg shadow-lg overflow-hidden bg-card border-2 border-border select-none"
         style={baseStyle}
-        onMouseDown={(e) => onMouseDown(e, note.id)}
       >
-        <div className="absolute top-1 right-1 z-10 flex gap-1">
+        <div
+          className="absolute top-0 left-0 right-0 h-7 z-10 cursor-grab active:cursor-grabbing bg-gradient-to-b from-black/40 to-transparent flex items-center justify-end px-2"
+          onMouseDown={(e) => onMouseDown(e, note.id)}
+        >
           <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="bg-background/80 hover:bg-background rounded-full p-1">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
-        {note.isVideo ? (
-          <video src={note.mediaUrl} autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-none" />
+        {note.kind === "youtube" ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${note.mediaUrl}?autoplay=1&loop=1&playlist=${note.mediaUrl}`}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            className="w-full h-full"
+            title="YouTube video"
+          />
+        ) : note.kind === "video" ? (
+          <video src={note.mediaUrl} autoPlay loop controls playsInline className="w-full h-full object-cover" />
         ) : (
           <img src={note.mediaUrl} alt="media note" className="w-full h-full object-cover pointer-events-none" />
         )}
@@ -258,6 +268,9 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate }: {
 
   // AI
   return (
+    <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
+  );
+}
     <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} />
   );
 }
