@@ -1,9 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick } from "lucide-react";
+import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick, History } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
-import { AmbientSounds } from "@/components/AmbientSounds";
 import { SettingsModal } from "@/components/SettingsModal";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useTimer } from "@/hooks/useTimer";
@@ -14,6 +13,7 @@ import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
 import { HelpGuide } from "@/components/HelpGuide";
 import { EasterEggBackground } from "@/components/EasterEggBackground";
+import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
@@ -34,7 +34,9 @@ const Index = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgIsVideo, setBgIsVideo] = useState(false);
   const [bgOverlay, setBgOverlay] = useState(70);
+  const [bgVideoMuted, setBgVideoMuted] = useState(true);
   const [glassOpacity, setGlassOpacity] = useState(40); // timer card glass opacity when bg active
+  const [historyOpen, setHistoryOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
