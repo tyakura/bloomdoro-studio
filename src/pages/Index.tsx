@@ -1,9 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick } from "lucide-react";
+import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick, History } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
-import { AmbientSounds } from "@/components/AmbientSounds";
 import { SettingsModal } from "@/components/SettingsModal";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useTimer } from "@/hooks/useTimer";
@@ -14,6 +13,7 @@ import { Garden } from "@/components/Garden";
 import { StickyNotes } from "@/components/StickyNotes";
 import { HelpGuide } from "@/components/HelpGuide";
 import { EasterEggBackground } from "@/components/EasterEggBackground";
+import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
@@ -34,7 +34,9 @@ const Index = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgIsVideo, setBgIsVideo] = useState(false);
   const [bgOverlay, setBgOverlay] = useState(70);
+  const [bgVideoMuted, setBgVideoMuted] = useState(true);
   const [glassOpacity, setGlassOpacity] = useState(40); // timer card glass opacity when bg active
+  const [historyOpen, setHistoryOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
@@ -142,10 +144,11 @@ const Index = () => {
       {bgImage && (
         bgIsVideo ? (
           <video
+            key={bgImage + (bgVideoMuted ? "m" : "u")}
             src={bgImage}
             autoPlay
             loop
-            muted
+            muted={bgVideoMuted}
             playsInline
             className="fixed inset-0 w-full h-full object-cover z-0"
           />
@@ -172,7 +175,6 @@ const Index = () => {
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
           {!isMobile && (
             <>
-              <AmbientSounds />
               <button
                 onClick={() => setGardenOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
@@ -180,19 +182,29 @@ const Index = () => {
                 <Flower2 className="w-4 h-4" />
                 Garden
               </button>
+              <button
+                onClick={() => setHistoryOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
+                aria-label="Riwayat AI"
+              >
+                <History className="w-4 h-4" />
+                Riwayat AI
+              </button>
             </>
           )}
           <SettingsModal
             onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
-            showAmbient={isMobile}
             showGarden={isMobile}
             onGardenOpen={() => setGardenOpen(true)}
             onBgChange={(url, isVideo) => { setBgImage(url); setBgIsVideo(isVideo); }}
             bgImage={bgImage}
+            bgIsVideo={bgIsVideo}
             overlayOpacity={bgOverlay}
             onOverlayChange={setBgOverlay}
             glassOpacity={glassOpacity}
             onGlassChange={setGlassOpacity}
+            bgVideoMuted={bgVideoMuted}
+            onBgVideoMutedChange={setBgVideoMuted}
           />
         </div>
       </header>
@@ -210,7 +222,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
         {phase === "setup" ? (
-          <TimerSetup onStart={handleStart} defaultTheme={theme} />
+          <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bgImage} glassOpacity={glassOpacity} />
         ) : phase === "complete" ? (
           <CompletionScreen
             lastMinutes={customMinutes}
@@ -344,6 +356,9 @@ const Index = () => {
 
       {/* Garden Modal */}
       <Garden gardenFlowers={gardenFlowers} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
+
+      {/* AI Chat History */}
+      <ChatHistory isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
 
       {/* Sticky Notes */}
       <StickyNotes />

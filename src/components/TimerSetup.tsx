@@ -7,12 +7,14 @@ export type TimerTheme = "flower" | "rocket";
 interface TimerSetupProps {
   onStart: (minutes: number, theme: TimerTheme, breakMinutes: number, repeat: boolean) => void;
   defaultTheme?: TimerTheme;
+  glassActive?: boolean;
+  glassOpacity?: number;
 }
 
 const PRESETS = [15, 25, 30, 45, 60];
 const BREAK_PRESETS = [5, 10, 25, 30];
 
-export function TimerSetup({ onStart, defaultTheme = "flower" }: TimerSetupProps) {
+export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = false, glassOpacity = 40 }: TimerSetupProps) {
   const [minutes, setMinutes] = useState(25);
   const [theme, setTheme] = useState<TimerTheme>(defaultTheme);
   const [showBreak, setShowBreak] = useState(false);
@@ -22,7 +24,14 @@ export function TimerSetup({ onStart, defaultTheme = "flower" }: TimerSetupProps
   return (
     <div className="flex flex-col items-center justify-center gap-6 md:flex-row md:items-start">
       {/* Main Focus Timer Card */}
-      <div className="flex flex-col items-center gap-8 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-md w-full">
+      <div
+        className={`flex flex-col items-center gap-8 p-8 rounded-2xl border shadow-sm max-w-md w-full ${glassActive ? 'border-white/30' : 'bg-card border-border'}`}
+        style={glassActive ? {
+          backgroundColor: `hsl(var(--card) / ${glassOpacity / 100})`,
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        } : undefined}
+      >
         <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase">
           Set Your Focus Time
         </span>
@@ -134,7 +143,14 @@ export function TimerSetup({ onStart, defaultTheme = "flower" }: TimerSetupProps
 
       {/* Break Timer Card (desktop/tablet only, shown when enabled) */}
       {showBreak && (
-        <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-card border border-border shadow-sm max-w-sm w-full">
+        <div
+          className={`flex flex-col items-center gap-6 p-8 rounded-2xl border shadow-sm max-w-sm w-full ${glassActive ? 'border-white/30' : 'bg-card border-border'}`}
+          style={glassActive ? {
+            backgroundColor: `hsl(var(--card) / ${glassOpacity / 100})`,
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          } : undefined}
+        >
           <div className="flex items-center justify-between w-full">
             <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase inline-flex items-center gap-1.5">
               <Coffee className="w-3.5 h-3.5" />

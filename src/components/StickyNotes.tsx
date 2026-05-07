@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2 } from "lucide-react";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { upsertChatEntry } from "@/components/ChatHistory";
+
+type ChatMode = "talk" | "riset" | "coding";
 
 type NoteType = "sticky" | "media" | "ai";
 
@@ -28,7 +30,7 @@ interface StickyNote extends BaseNote {
 interface MediaNote extends BaseNote {
   type: "media";
   mediaUrl: string;
-  isVideo: boolean;
+  kind: "image" | "video" | "youtube";
   date: string;
 }
 
@@ -37,6 +39,8 @@ interface ChatMsg { role: "user" | "assistant"; content: string }
 interface AiNote extends BaseNote {
   type: "ai";
   messages: ChatMsg[];
+  mode: ChatMode;
+  sessionId: string;
 }
 
 type AnyNote = StickyNote | MediaNote | AiNote;
@@ -48,6 +52,15 @@ const COLOR_SWATCHES = [
   { bg: "#dcfce7", border: "#86efac", class: "bg-green-100 border-green-300 text-green-900" },
   { bg: "#f3e8ff", border: "#d8b4fe", class: "bg-purple-100 border-purple-300 text-purple-900" },
 ];
+
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/,
+    /youtube\.com\/shorts\/([\w-]{11})/,
+  ];
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+  return null;
+}
 
 const isLightColor = (hex: string) => {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -103,25 +116,31 @@ export function StickyNotes() {
     }]);
   };
 
-  const addMediaNote = (mediaUrl: string, isVideo: boolean) => {
+  const addMediaNote = (mediaUrl: string, kind: "image" | "video" | "youtube") => {
     setNotes(prev => [...prev, {
-      id: crypto.randomUUID(), type: "media", mediaUrl, isVideo, date: today,
+      id: crypto.randomUUID(), type: "media", mediaUrl, kind, date: today,
       x: 120 + Math.random() * 200, y: 120 + Math.random() * 200,
-      width: 280, height: 220,
-    }]);
+      width: 320, height: 240,
+    } as MediaNote]);
   };
 
   const addAiNote = () => {
     setNotes(prev => [...prev, {
       id: crypto.randomUUID(), type: "ai",
-      messages: [{ role: "assistant", content: "Halo! Aku **Bloomdoro AI** 🌸 — teman ngobrolmu di sela-sela fokus. Aku bisa bantu riset, jawab pertanyaan, atau sekedar ngobrol santai. Lagi ngerjain apa hari ini?" }],
+      mode: "talk" as ChatMode,
+      sessionId: crypto.randomUUID(),
+      messages: [{ role: "assistant", content: "Halo! Aku **Bloomdoro AI** — teman ngobrolmu di sela-sela fokus. Aku bisa bantu riset, jawab pertanyaan, atau sekedar ngobrol santai. Lagi ngerjain apa hari ini?" }],
       x: 140 + Math.random() * 100, y: 100,
-      width: 360, height: 440,
-    }]);
+      width: 380, height: 480,
+    } as AiNote]);
   };
 
   const updateAiMessages = (id: string, msgs: ChatMsg[]) => {
     setNotes(prev => prev.map(n => n.id === id && n.type === "ai" ? { ...n, messages: msgs } : n));
+  };
+
+  const updateAiMode = (id: string, mode: ChatMode) => {
+    setNotes(prev => prev.map(n => n.id === id && n.type === "ai" ? { ...n, mode } : n));
   };
 
   return (
@@ -134,11 +153,12 @@ export function StickyNotes() {
           onDelete={deleteNote}
           onResizeDown={handleResizeDown}
           onAiUpdate={updateAiMessages}
+          onAiModeChange={updateAiMode}
         />
       ))}
 
       {creating === "sticky" && <StickyCreator today={today} onClose={() => setCreating(null)} onSave={addStickyNote} />}
-      {creating === "media" && <MediaCreator onClose={() => setCreating(null)} onSave={(u, v) => { addMediaNote(u, v); setCreating(null); }} />}
+      {creating === "media" && <MediaCreator onClose={() => setCreating(null)} onSave={(u, k) => { addMediaNote(u, k); setCreating(null); }} />}
 
       {/* FAB menu */}
       {menuOpen && (
@@ -178,12 +198,13 @@ function FabItem({ icon: Icon, label, onClick, badge }: { icon: any; label: stri
 }
 
 // ============ Note Card renderer ============
-function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate }: {
+function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
   note: AnyNote;
   onMouseDown: (e: React.MouseEvent, id: string) => void;
   onDelete: (id: string) => void;
   onResizeDown: (e: React.MouseEvent, n: AnyNote) => void;
   onAiUpdate: (id: string, msgs: ChatMsg[]) => void;
+  onAiModeChange: (id: string, mode: ChatMode) => void;
 }) {
   const baseStyle: React.CSSProperties = { left: note.x, top: note.y, width: note.width, height: note.height || undefined };
 
@@ -217,17 +238,26 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate }: {
     return (
       <div
         data-note-id={note.id}
-        className="fixed z-40 rounded-lg shadow-lg overflow-hidden cursor-grab active:cursor-grabbing select-none bg-card border-2 border-border"
+        className="fixed z-40 rounded-lg shadow-lg overflow-hidden bg-card border-2 border-border select-none"
         style={baseStyle}
-        onMouseDown={(e) => onMouseDown(e, note.id)}
       >
-        <div className="absolute top-1 right-1 z-10 flex gap-1">
+        <div
+          className="absolute top-0 left-0 right-0 h-7 z-10 cursor-grab active:cursor-grabbing bg-gradient-to-b from-black/40 to-transparent flex items-center justify-end px-2"
+          onMouseDown={(e) => onMouseDown(e, note.id)}
+        >
           <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="bg-background/80 hover:bg-background rounded-full p-1">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
-        {note.isVideo ? (
-          <video src={note.mediaUrl} autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-none" />
+        {note.kind === "youtube" ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${note.mediaUrl}?autoplay=1&loop=1&playlist=${note.mediaUrl}`}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            className="w-full h-full"
+            title="YouTube video"
+          />
+        ) : note.kind === "video" ? (
+          <video src={note.mediaUrl} autoPlay loop controls playsInline className="w-full h-full object-cover" />
         ) : (
           <img src={note.mediaUrl} alt="media note" className="w-full h-full object-cover pointer-events-none" />
         )}
@@ -238,7 +268,7 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate }: {
 
   // AI
   return (
-    <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} />
+    <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
   );
 }
 
@@ -321,19 +351,34 @@ function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () 
 }
 
 // ============ Media creator ============
-function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: string, isVideo: boolean) => void }) {
+function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: string, kind: "image" | "video" | "youtube") => void }) {
   const [url, setUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    onSave(URL.createObjectURL(f), f.type.startsWith("video/"));
+    onSave(URL.createObjectURL(f), f.type.startsWith("video/") ? "video" : "image");
   };
   const handleUrl = () => {
-    if (!url.trim()) return;
-    const isVideo = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url);
-    onSave(url.trim(), isVideo);
+    const u = url.trim();
+    if (!u) return;
+    const ytId = getYouTubeId(u);
+    if (ytId) {
+      onSave(ytId, "youtube");
+      return;
+    }
+    if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(u)) {
+      onSave(u, "video");
+      return;
+    }
+    if (/\.(jpg|jpeg|png|gif|webp|svg|avif)(\?|$)/i.test(u)) {
+      onSave(u, "image");
+      return;
+    }
+    // Heuristic fallback: try image
+    onSave(u, "image");
+    toast.message("URL tidak dikenali, dicoba sebagai gambar.");
   };
 
   return (
@@ -349,31 +394,96 @@ function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: 
             <Upload className="w-4 h-4" /> Upload gambar / video
           </Button>
           <div className="flex gap-2">
-            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="atau paste URL..." />
+            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL YouTube / gambar / video..." />
             <Button onClick={handleUrl} disabled={!url.trim()}>OK</Button>
           </div>
-          <p className="text-xs text-muted-foreground">Drag note untuk pindah, tarik pojok kanan-bawah untuk memperbesar.</p>
+          <p className="text-xs text-muted-foreground">Mendukung YouTube, .mp4/.webm, dan gambar. Drag header untuk pindah, tarik pojok kanan-bawah untuk memperbesar.</p>
         </div>
       </div>
     </div>
   );
 }
 
+// ============ Code block renderer ============
+function MessageContent({ content }: { content: string }) {
+  // Split by triple-backtick fences
+  const parts: { kind: "text" | "code"; lang?: string; text: string }[] = [];
+  const re = /```(\w+)?\n?([\s\S]*?)```/g;
+  let lastIdx = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(content)) !== null) {
+    if (m.index > lastIdx) parts.push({ kind: "text", text: content.slice(lastIdx, m.index) });
+    parts.push({ kind: "code", lang: m[1] || "code", text: m[2].replace(/\n$/, "") });
+    lastIdx = re.lastIndex;
+  }
+  if (lastIdx < content.length) parts.push({ kind: "text", text: content.slice(lastIdx) });
+
+  return (
+    <>
+      {parts.map((p, i) => p.kind === "code" ? (
+        <div key={i} className="my-2 rounded-lg overflow-hidden border border-zinc-700 not-prose">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-800 text-zinc-300 text-[10px] font-mono uppercase tracking-wide">
+            <span className="inline-flex items-center gap-1.5"><Code2 className="w-3 h-3" />Bahasa: {p.lang}</span>
+          </div>
+          <pre className="bg-black text-zinc-100 text-xs p-3 overflow-x-auto"><code>{p.text}</code></pre>
+        </div>
+      ) : (
+        <span key={i} className="whitespace-pre-wrap break-words">{p.text}</span>
+      ))}
+    </>
+  );
+}
+
+// Parse "SOURCES:" footer into reference links
+function parseSources(content: string): { body: string; sources: { title: string; url: string }[] } {
+  const idx = content.search(/\n?SOURCES:\s*\n/i);
+  if (idx === -1) return { body: content, sources: [] };
+  const body = content.slice(0, idx).trimEnd();
+  const tail = content.slice(idx).replace(/\n?SOURCES:\s*\n/i, "");
+  const sources: { title: string; url: string }[] = [];
+  for (const raw of tail.split("\n")) {
+    const line = raw.replace(/^[-*\s]+/, "").trim();
+    if (!line) continue;
+    const parts = line.split("|").map(s => s.trim());
+    if (parts.length >= 2 && /^https?:\/\//.test(parts[1])) sources.push({ title: parts[0], url: parts[1] });
+    else {
+      const m = line.match(/(https?:\/\/\S+)/);
+      if (m) sources.push({ title: line.replace(m[1], "").trim() || m[1], url: m[1] });
+    }
+  }
+  return { body, sources };
+}
+
 // ============ AI chat note ============
-function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate }: {
+function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
   note: AiNote;
   onMouseDown: (e: React.MouseEvent, id: string) => void;
   onDelete: (id: string) => void;
   onResizeDown: (e: React.MouseEvent, n: AnyNote) => void;
   onUpdate: (id: string, msgs: ChatMsg[]) => void;
+  onModeChange: (id: string, mode: ChatMode) => void;
 }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSourcesFor, setShowSourcesFor] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const startedAt = useRef<number>(Date.now());
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [note.messages]);
+
+  // Persist conversation to history whenever messages change (and >1 message)
+  useEffect(() => {
+    if (note.messages.length <= 1) return;
+    const firstUser = note.messages.find(m => m.role === "user");
+    upsertChatEntry({
+      id: note.sessionId,
+      startedAt: startedAt.current,
+      preview: firstUser?.content.slice(0, 80) || "",
+      messages: note.messages,
+    });
+  }, [note.messages, note.sessionId]);
 
   const send = async () => {
     if (!input.trim() || loading) return;
@@ -390,7 +500,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate }: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: newMsgs }),
+        body: JSON.stringify({ messages: newMsgs, mode: note.mode }),
       });
 
       if (!resp.ok || !resp.body) {
@@ -439,6 +549,12 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate }: {
     }
   };
 
+  const MODES: { id: ChatMode; label: string; icon: any }[] = [
+    { id: "talk", label: "Talk", icon: MessageSquare },
+    { id: "riset", label: "Riset", icon: Search },
+    { id: "coding", label: "Coding", icon: Code2 },
+  ];
+
   return (
     <div
       data-note-id={note.id}
@@ -461,24 +577,67 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate }: {
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2">
-        {note.messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${
-              m.role === "user"
-                ? "bg-primary text-primary-foreground rounded-br-sm"
-                : "bg-secondary text-secondary-foreground rounded-bl-sm"
-            }`}>{m.content || (loading ? "…" : "")}</div>
-          </div>
+        {note.messages.map((m, i) => {
+          const isUser = m.role === "user";
+          const { body, sources } = !isUser ? parseSources(m.content) : { body: m.content, sources: [] };
+          return (
+            <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[88%] px-3 py-2 rounded-2xl text-sm break-words ${
+                isUser
+                  ? "bg-primary text-primary-foreground rounded-br-sm"
+                  : "bg-secondary text-secondary-foreground rounded-bl-sm"
+              }`}>
+                {body ? <MessageContent content={body} /> : (loading ? <span className="opacity-60">…</span> : null)}
+                {!isUser && sources.length > 0 && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => setShowSourcesFor(showSourcesFor === i ? null : i)}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-primary/15 hover:bg-primary/25 text-primary transition-colors"
+                    >
+                      <LinkIcon className="w-3 h-3" /> {sources.length} Referensi
+                    </button>
+                    {showSourcesFor === i && (
+                      <ul className="mt-2 space-y-1">
+                        {sources.map((s, si) => (
+                          <li key={si}>
+                            <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary underline break-all">
+                              {s.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Mode picker */}
+      <div className="px-2 pt-2 flex gap-1 border-t border-border bg-background/50">
+        {MODES.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => onModeChange(note.id, id)}
+            className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-colors ${
+              note.mode === id ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
+            }`}
+          >
+            <Icon className="w-3 h-3" />
+            {label}
+          </button>
         ))}
       </div>
 
       {/* Input */}
-      <div className="p-2 border-t border-border flex gap-2 bg-background/50">
+      <div className="p-2 flex gap-2 bg-background/50">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder="Tulis pesan..."
+          placeholder={note.mode === "coding" ? "Tanya tentang kode..." : note.mode === "riset" ? "Topik yang ingin diriset..." : "Tulis pesan..."}
           disabled={loading}
           className="text-sm"
         />
