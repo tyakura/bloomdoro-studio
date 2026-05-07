@@ -116,25 +116,31 @@ export function StickyNotes() {
     }]);
   };
 
-  const addMediaNote = (mediaUrl: string, isVideo: boolean) => {
+  const addMediaNote = (mediaUrl: string, kind: "image" | "video" | "youtube") => {
     setNotes(prev => [...prev, {
-      id: crypto.randomUUID(), type: "media", mediaUrl, isVideo, date: today,
+      id: crypto.randomUUID(), type: "media", mediaUrl, kind, date: today,
       x: 120 + Math.random() * 200, y: 120 + Math.random() * 200,
-      width: 280, height: 220,
-    }]);
+      width: 320, height: 240,
+    } as MediaNote]);
   };
 
   const addAiNote = () => {
     setNotes(prev => [...prev, {
       id: crypto.randomUUID(), type: "ai",
-      messages: [{ role: "assistant", content: "Halo! Aku **Bloomdoro AI** 🌸 — teman ngobrolmu di sela-sela fokus. Aku bisa bantu riset, jawab pertanyaan, atau sekedar ngobrol santai. Lagi ngerjain apa hari ini?" }],
+      mode: "talk" as ChatMode,
+      sessionId: crypto.randomUUID(),
+      messages: [{ role: "assistant", content: "Halo! Aku **Bloomdoro AI** — teman ngobrolmu di sela-sela fokus. Aku bisa bantu riset, jawab pertanyaan, atau sekedar ngobrol santai. Lagi ngerjain apa hari ini?" }],
       x: 140 + Math.random() * 100, y: 100,
-      width: 360, height: 440,
-    }]);
+      width: 380, height: 480,
+    } as AiNote]);
   };
 
   const updateAiMessages = (id: string, msgs: ChatMsg[]) => {
     setNotes(prev => prev.map(n => n.id === id && n.type === "ai" ? { ...n, messages: msgs } : n));
+  };
+
+  const updateAiMode = (id: string, mode: ChatMode) => {
+    setNotes(prev => prev.map(n => n.id === id && n.type === "ai" ? { ...n, mode } : n));
   };
 
   return (
