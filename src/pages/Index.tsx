@@ -144,10 +144,11 @@ const Index = () => {
       {bgImage && (
         bgIsVideo ? (
           <video
+            key={bgImage + (bgVideoMuted ? "m" : "u")}
             src={bgImage}
             autoPlay
             loop
-            muted
+            muted={bgVideoMuted}
             playsInline
             className="fixed inset-0 w-full h-full object-cover z-0"
           />
@@ -174,7 +175,6 @@ const Index = () => {
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
           {!isMobile && (
             <>
-              <AmbientSounds />
               <button
                 onClick={() => setGardenOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
@@ -182,19 +182,29 @@ const Index = () => {
                 <Flower2 className="w-4 h-4" />
                 Garden
               </button>
+              <button
+                onClick={() => setHistoryOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
+                aria-label="Riwayat AI"
+              >
+                <History className="w-4 h-4" />
+                Riwayat AI
+              </button>
             </>
           )}
           <SettingsModal
             onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
-            showAmbient={isMobile}
             showGarden={isMobile}
             onGardenOpen={() => setGardenOpen(true)}
             onBgChange={(url, isVideo) => { setBgImage(url); setBgIsVideo(isVideo); }}
             bgImage={bgImage}
+            bgIsVideo={bgIsVideo}
             overlayOpacity={bgOverlay}
             onOverlayChange={setBgOverlay}
             glassOpacity={glassOpacity}
             onGlassChange={setGlassOpacity}
+            bgVideoMuted={bgVideoMuted}
+            onBgVideoMutedChange={setBgVideoMuted}
           />
         </div>
       </header>
