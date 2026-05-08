@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Settings, X, Upload, Link, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff } from "lucide-react";
+import { Settings, X, Upload, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { useLang, LANGUAGES, Lang } from "@/lib/i18n";
 
 const AMBIENT_SOUNDS = [
   { id: "rain", label: "Rain", icon: CloudRain, url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
@@ -11,13 +12,15 @@ const AMBIENT_SOUNDS = [
   { id: "waves", label: "Waves", icon: Waves, url: "https://cdn.freesound.org/previews/467/467539_5765668-lq.mp3" },
 ];
 
+export type BgKind = "image" | "video" | "youtube";
+
 interface SettingsModalProps {
   onMusicLoad: (url: string, name: string) => void;
   showGarden?: boolean;
   onGardenOpen?: () => void;
-  onBgChange?: (url: string | null, isVideo: boolean) => void;
+  onBgChange?: (url: string | null, kind: BgKind) => void;
   bgImage?: string | null;
-  bgIsVideo?: boolean;
+  bgKind?: BgKind;
   overlayOpacity?: number;
   onOverlayChange?: (val: number) => void;
   glassOpacity?: number;
@@ -26,7 +29,17 @@ interface SettingsModalProps {
   onBgVideoMutedChange?: (v: boolean) => void;
 }
 
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/,
+    /youtube\.com\/shorts\/([\w-]{11})/,
+  ];
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+  return null;
+}
+
 function DarkModeToggle() {
+  const { t } = useLang();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
 
   useEffect(() => {
@@ -41,16 +54,14 @@ function DarkModeToggle() {
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
-    if (saved === "dark") {
-      setIsDark(true);
-    }
+    if (saved === "dark") setIsDark(true);
   }, []);
 
   return (
     <div>
       <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
         {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-        Dark Mode
+        {t("dark_mode")}
       </h3>
       <button
         onClick={() => setIsDark(!isDark)}
@@ -58,46 +69,54 @@ function DarkModeToggle() {
           isDark ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
         }`}
       >
-        <span className="text-sm font-medium">{isDark ? "Dark Mode Aktif" : "Light Mode Aktif"}</span>
+        <span className="text-sm font-medium">{isDark ? t("dark_active") : t("light_active")}</span>
         {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
       </button>
     </div>
   );
 }
 
-export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, onBgChange, bgImage, bgIsVideo = false, overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange, bgVideoMuted = true, onBgVideoMutedChange }: SettingsModalProps) {
+export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, onBgChange, bgImage, bgKind = "image", overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange, bgVideoMuted = true, onBgVideoMutedChange }: SettingsModalProps) {
+  const { t, lang, setLang } = useLang();
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [bgUrl, setBgUrl] = useState("");
-  const [volume, setVolume] = useState(50);
+  const [volume, setVolume] = useState(() => parseInt(localStorage.getItem("bloomdoro_volume") || "50"));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgFileInputRef = useRef<HTMLInputElement>(null);
   const [activeSound, setActiveSound] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  useEffect(() => { localStorage.setItem("bloomdoro_volume", String(volume)); }, [volume]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      onMusicLoad(url, file.name);
-    }
+    if (file) onMusicLoad(URL.createObjectURL(file), file.name);
   };
 
-  const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBgFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      const isVideo = file.type.startsWith("video/");
-      onBgChange?.(url, isVideo);
+    if (!file) return;
+    const isVideo = file.type.startsWith("video/");
+    if (isVideo) {
+      // videos: use blob URL (too large to base64); user accepts that videos may not persist
+      onBgChange?.(URL.createObjectURL(file), "video");
+    } else {
+      // images: convert to data URL so it persists
+      const { toDataURL } = await import("@/lib/persist");
+      const data = await toDataURL(file);
+      onBgChange?.(data, "image");
     }
   };
 
   const handleBgUrlSubmit = () => {
-    if (bgUrl.trim()) {
-      const isVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(bgUrl);
-      onBgChange?.(bgUrl.trim(), isVideo);
-      setBgUrl("");
-    }
+    const u = bgUrl.trim();
+    if (!u) return;
+    const ytId = getYouTubeId(u);
+    if (ytId) onBgChange?.(ytId, "youtube");
+    else if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(u)) onBgChange?.(u, "video");
+    else onBgChange?.(u, "image");
+    setBgUrl("");
   };
 
   const handleYoutubeSubmit = () => {
@@ -134,9 +153,7 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
 
   const handleVolumeChange = (val: number[]) => {
     setVolume(val[0]);
-    if (audioRef.current) {
-      audioRef.current.volume = val[0] / 100;
-    }
+    if (audioRef.current) audioRef.current.volume = val[0] / 100;
   };
 
   if (!isOpen) {
@@ -146,7 +163,7 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
         className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
       >
         <Settings className="w-4 h-4" />
-        <span className="hidden sm:inline">Settings</span>
+        <span className="hidden sm:inline">{t("settings")}</span>
       </button>
     );
   }
@@ -155,141 +172,117 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
     <div className="fixed inset-0 z-[130] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
       <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display text-xl font-bold text-foreground">Settings</h2>
+          <h2 className="font-display text-xl font-bold text-foreground">{t("settings")}</h2>
           <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-foreground">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="space-y-6">
-          {/* Dark Mode Toggle */}
           <DarkModeToggle />
 
-          {/* Garden button for mobile */}
+          {/* Language */}
+          <div>
+            <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+              <Languages className="w-4 h-4" />
+              {t("language")}
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {LANGUAGES.map(({ code, native }) => (
+                <button
+                  key={code}
+                  onClick={() => setLang(code as Lang)}
+                  className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                    lang === code ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
+                  }`}
+                >
+                  {native}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {showGarden && onGardenOpen && (
             <div>
-              <h3 className="font-display font-semibold text-sm text-foreground mb-3">Garden</h3>
+              <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("garden")}</h3>
               <Button
                 onClick={() => { onGardenOpen(); setIsOpen(false); }}
                 variant="outline"
                 className="w-full justify-start gap-2"
               >
                 <Flower2 className="w-4 h-4" />
-                Open Garden
+                {t("open_garden")}
               </Button>
             </div>
           )}
 
-          {/* Ambient sounds (always in settings) */}
-          {true && (
-            <div>
-              <h3 className="font-display font-semibold text-sm text-foreground mb-3">Ambient Sounds</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {AMBIENT_SOUNDS.map((sound) => {
-                  const Icon = sound.icon;
-                  return (
-                    <button
-                      key={sound.id}
-                      onClick={() => toggleSound(sound.id)}
-                      className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
-                        activeSound === sound.id
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary hover:bg-muted text-foreground"
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {sound.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {activeSound && (
-                <button
-                  onClick={stopAmbient}
-                  className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
-                >
-                  <VolumeOff className="w-4 h-4" />
-                  Matikan
-                </button>
-              )}
+          <div>
+            <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("ambient_sounds")}</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {AMBIENT_SOUNDS.map((sound) => {
+                const Icon = sound.icon;
+                return (
+                  <button
+                    key={sound.id}
+                    onClick={() => toggleSound(sound.id)}
+                    className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
+                      activeSound === sound.id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {sound.label}
+                  </button>
+                );
+              })}
             </div>
-          )}
+            {activeSound && (
+              <button
+                onClick={stopAmbient}
+                className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
+              >
+                <VolumeOff className="w-4 h-4" />
+                {t("turn_off")}
+              </button>
+            )}
+          </div>
 
-          {/* Volume Control */}
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
               <Volume2 className="w-4 h-4" />
-              Volume
+              {t("volume")}
             </h3>
             <div className="flex items-center gap-3">
-              <Slider
-                value={[volume]}
-                onValueChange={handleVolumeChange}
-                max={100}
-                min={0}
-                step={1}
-                className="flex-1"
-              />
+              <Slider value={[volume]} onValueChange={handleVolumeChange} max={100} min={0} step={1} className="flex-1" />
               <span className="text-sm text-muted-foreground w-10 text-right">{volume}%</span>
             </div>
           </div>
 
-          {/* Background Image/Video */}
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
               <Image className="w-4 h-4" />
-              Background
+              {t("background")}
             </h3>
             <div className="space-y-2">
-              <input
-                ref={bgFileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleBgFileUpload}
-                className="hidden"
-              />
-              <Button
-                onClick={() => bgFileInputRef.current?.click()}
-                variant="outline"
-                className="w-full justify-start gap-2"
-              >
+              <input ref={bgFileInputRef} type="file" accept="image/*,video/*" onChange={handleBgFileUpload} className="hidden" />
+              <Button onClick={() => bgFileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
                 <Upload className="w-4 h-4" />
-                Upload gambar / video
+                {t("upload_media")}
               </Button>
               <div className="flex gap-2">
-                <Input
-                  value={bgUrl}
-                  onChange={(e) => setBgUrl(e.target.value)}
-                  placeholder="Paste image/video URL..."
-                  className="flex-1"
-                />
-                <Button onClick={handleBgUrlSubmit} size="icon" variant="outline">
-                  <Link className="w-4 h-4" />
-                </Button>
+                <Input value={bgUrl} onChange={(e) => setBgUrl(e.target.value)} placeholder={t("paste_url_bg")} className="flex-1" />
+                <Button onClick={handleBgUrlSubmit} variant="outline" className="px-4">{t("go")}</Button>
               </div>
               {bgImage && (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Overlay Opacity: {overlayOpacity}%</label>
-                    <Slider
-                      value={[overlayOpacity]}
-                      onValueChange={(val) => onOverlayChange?.(val[0])}
-                      max={100}
-                      min={0}
-                      step={5}
-                    />
+                    <label className="text-sm text-muted-foreground mb-1 block">{t("overlay_opacity")}: {overlayOpacity}%</label>
+                    <Slider value={[overlayOpacity]} onValueChange={(val) => onOverlayChange?.(val[0])} max={100} min={0} step={5} />
                   </div>
                   <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Buram Kotak Waktu (Glass): {glassOpacity}%</label>
-                    <Slider
-                      value={[glassOpacity]}
-                      onValueChange={(val) => onGlassChange?.(val[0])}
-                      max={100}
-                      min={0}
-                      step={5}
-                    />
+                    <label className="text-sm text-muted-foreground mb-1 block">{t("glass_opacity")}: {glassOpacity}%</label>
+                    <Slider value={[glassOpacity]} onValueChange={(val) => onGlassChange?.(val[0])} max={100} min={0} step={5} />
                   </div>
-                  {bgIsVideo && (
+                  {bgKind === "video" && (
                     <button
                       onClick={() => onBgVideoMutedChange?.(!bgVideoMuted)}
                       className={`w-full px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors ${
@@ -297,15 +290,11 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
                       }`}
                     >
                       {bgVideoMuted ? <VolumeOff className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                      {bgVideoMuted ? "Suara Background OFF" : "Suara Background ON"}
+                      {bgVideoMuted ? t("bg_sound_off") : t("bg_sound_on")}
                     </button>
                   )}
-                  <Button
-                    onClick={() => onBgChange?.(null, false)}
-                    variant="outline"
-                    className="w-full text-destructive hover:text-destructive"
-                  >
-                    Hapus Background
+                  <Button onClick={() => onBgChange?.(null, "image")} variant="outline" className="w-full text-destructive hover:text-destructive">
+                    {t("remove_bg")}
                   </Button>
                 </div>
               )}
@@ -313,40 +302,20 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
           </div>
 
           <div>
-            <h3 className="font-display font-semibold text-sm text-foreground mb-3">Upload Music from Device</h3>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="audio/*"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              variant="outline"
-              className="w-full justify-start gap-2"
-            >
+            <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("upload_music")}</h3>
+            <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" />
+            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
               <Upload className="w-4 h-4" />
-              Choose audio file
+              {t("choose_audio")}
             </Button>
           </div>
 
           <div>
-            <h3 className="font-display font-semibold text-sm text-foreground mb-3">YouTube Link</h3>
+            <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("youtube_link")}</h3>
             <div className="flex gap-2">
-              <Input
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="Paste YouTube URL..."
-                className="flex-1"
-              />
-              <Button onClick={handleYoutubeSubmit} size="icon" variant="outline">
-                <Link className="w-4 h-4" />
-              </Button>
+              <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder={t("paste_youtube")} className="flex-1" />
+              <Button onClick={handleYoutubeSubmit} variant="outline" className="px-4">{t("go")}</Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Note: YouTube playback requires the URL to be a direct audio link or embed.
-            </p>
           </div>
         </div>
       </div>
