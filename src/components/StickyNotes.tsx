@@ -161,7 +161,7 @@ export function StickyNotes() {
       id: crypto.randomUUID(), type: "ai",
       mode: "talk" as ChatMode,
       sessionId: crypto.randomUUID(),
-      messages: [{ role: "assistant", content: "Halo! Aku **Bloomdoro AI** — teman ngobrolmu di sela-sela fokus. Aku bisa bantu riset, jawab pertanyaan, atau sekedar ngobrol santai. Lagi ngerjain apa hari ini?" }],
+      messages: [{ role: "assistant", content: t("ai_greet") }],
       x: 140 + Math.random() * 100, y: 100,
       width: 380, height: 480,
     } as AiNote]);
