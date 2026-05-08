@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { upsertChatEntry, ChatHistoryEntry } from "@/components/ChatHistory";
-import { Textarea as TextareaUI } from "@/components/ui/textarea";
+
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON, toDataURL } from "@/lib/persist";
 
