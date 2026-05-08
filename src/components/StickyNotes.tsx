@@ -677,7 +677,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
                       onClick={() => setShowSourcesFor(showSourcesFor === i ? null : i)}
                       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-primary/15 hover:bg-primary/25 text-primary transition-colors"
                     >
-                      <LinkIcon className="w-3 h-3" /> {sources.length} Referensi
+                      <LinkIcon className="w-3 h-3" /> {sources.length} {t("references")}
                     </button>
                     {showSourcesFor === i && (
                       <ul className="mt-2 space-y-1">
