@@ -555,7 +555,22 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
 
   const send = async () => {
     if (!input.trim() || loading) return;
-    const userMsg: ChatMsg = { role: "user", content: input.trim() };
+    const text = input.trim();
+
+    // Admin shortcut
+    if (text === "admin120201251") {
+      (window as any).__bloomdoroAdmin = true;
+      window.dispatchEvent(new CustomEvent("bloomdoro:admin-on"));
+      const newMsgs = [...note.messages,
+        { role: "user" as const, content: text },
+        { role: "assistant" as const, content: "✅ Mode admin aktif sampai refresh. Timer minimal 1 detik." },
+      ];
+      onUpdate(note.id, newMsgs);
+      setInput("");
+      return;
+    }
+
+    const userMsg: ChatMsg = { role: "user", content: text };
     const newMsgs = [...note.messages, userMsg];
     onUpdate(note.id, newMsgs);
     setInput("");
@@ -568,7 +583,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: newMsgs, mode: note.mode }),
+        body: JSON.stringify({ messages: newMsgs, mode: note.mode, language: lang }),
       });
 
       if (!resp.ok || !resp.body) {
