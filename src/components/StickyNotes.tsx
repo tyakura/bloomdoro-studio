@@ -716,13 +716,14 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
 
       {/* Input */}
       <div className="p-2 flex gap-2 bg-background/50">
-        <Input
+        <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={note.mode === "coding" ? "Tanya tentang kode..." : note.mode === "riset" ? "Topik yang ingin diriset..." : "Tulis pesan..."}
+          placeholder={note.mode === "coding" ? t("type_code") : note.mode === "riset" ? t("type_research") : t("type_message")}
           disabled={loading}
-          className="text-sm"
+          rows={1}
+          className="text-sm min-h-[40px] max-h-[120px] resize-none"
         />
         <Button size="icon" onClick={send} disabled={loading || !input.trim()}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
