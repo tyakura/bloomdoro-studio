@@ -530,6 +530,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
   onUpdate: (id: string, msgs: ChatMsg[]) => void;
   onModeChange: (id: string, mode: ChatMode) => void;
 }) {
+  const { lang, t } = useLang();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSourcesFor, setShowSourcesFor] = useState<number | null>(null);
