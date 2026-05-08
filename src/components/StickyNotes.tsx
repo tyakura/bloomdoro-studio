@@ -1,10 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2 } from "lucide-react";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { upsertChatEntry } from "@/components/ChatHistory";
+import { upsertChatEntry, ChatHistoryEntry } from "@/components/ChatHistory";
+import { Textarea as TextareaUI } from "@/components/ui/textarea";
+import { useLang } from "@/lib/i18n";
+import { loadJSON, saveJSON, toDataURL } from "@/lib/persist";
 
 type ChatMode = "talk" | "riset" | "coding";
 
