@@ -3,7 +3,7 @@ import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerCl
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
-import { SettingsModal } from "@/components/SettingsModal";
+import { SettingsModal, BgKind } from "@/components/SettingsModal";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useTimer } from "@/hooks/useTimer";
 import { GrowingFlower, FlowerVariant } from "@/components/GrowingFlower";
@@ -15,33 +15,41 @@ import { HelpGuide } from "@/components/HelpGuide";
 import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLang } from "@/lib/i18n";
+import { loadJSON, saveJSON } from "@/lib/persist";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
 
+interface BgState { url: string | null; kind: BgKind; overlay: number; glass: number; muted: boolean; }
+
+const BG_KEY = "bloomdoro_bg";
+
 const Index = () => {
+  const { t } = useLang();
   const [phase, setPhase] = useState<SessionPhase>("setup");
-  const [sessions, setSessions] = useState(0);
+  const [sessions, setSessions] = useState(() => loadJSON("bloomdoro_sessions", 0));
   const [customMinutes, setCustomMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(0);
   const [repeatMode, setRepeatMode] = useState(false);
-  const [cycleCount, setCycleCount] = useState(0); // completed focus cycles in repeat
+  const [cycleCount, setCycleCount] = useState(0);
   const [theme, setTheme] = useState<TimerTheme>("flower");
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
   const [gardenOpen, setGardenOpen] = useState(false);
-  const [gardenFlowers, setGardenFlowers] = useState<FlowerVariant[]>([]);
+  const [gardenFlowers, setGardenFlowers] = useState<FlowerVariant[]>(() => loadJSON("bloomdoro_garden", [] as FlowerVariant[]));
   const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [bgIsVideo, setBgIsVideo] = useState(false);
-  const [bgOverlay, setBgOverlay] = useState(70);
-  const [bgVideoMuted, setBgVideoMuted] = useState(true);
-  const [glassOpacity, setGlassOpacity] = useState(40); // timer card glass opacity when bg active
+  const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
 
-  // Track total elapsed seconds in repeat mode for easter egg trigger
+  // Persistence
+  useEffect(() => { saveJSON(BG_KEY, bg); }, [bg]);
+  useEffect(() => { saveJSON("bloomdoro_garden", gardenFlowers); }, [gardenFlowers]);
+  useEffect(() => { saveJSON("bloomdoro_sessions", sessions); }, [sessions]);
+
+  // Track elapsed for easter egg
   const [repeatElapsed, setRepeatElapsed] = useState(0);
   useEffect(() => {
     if (!repeatMode || phase !== "focus" || timer.status !== "running") return;
@@ -73,13 +81,10 @@ const Index = () => {
   }, [timer, customMinutes]);
 
   const handleStop = useCallback(() => {
-    // Stop repeat mode, award flowers for completed cycles
     timer.reset(customMinutes);
     if (cycleCount > 0 && theme === "flower") {
       const newFlowers: FlowerVariant[] = [];
-      for (let i = 0; i < cycleCount; i++) {
-        newFlowers.push((Math.floor(Math.random() * 4)) as FlowerVariant);
-      }
+      for (let i = 0; i < cycleCount; i++) newFlowers.push((Math.floor(Math.random() * 4)) as FlowerVariant);
       setGardenFlowers((prev) => [...prev, ...newFlowers].slice(0, 20));
     }
     setPhase("complete");
@@ -94,26 +99,18 @@ const Index = () => {
     setTimeout(() => timer.start(), 50);
   }, [timer, customMinutes]);
 
-  // Handle timer completion
   if (timer.status === "complete" && (phase === "focus" || phase === "break")) {
     musicStopRef.current?.();
-
     if (phase === "focus") {
       const newCycleCount = cycleCount + 1;
       setCycleCount(newCycleCount);
       setSessions((s) => s + 1);
-
-      if (theme === "flower") {
-        setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
-      }
-
+      if (theme === "flower") setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
       if (breakMinutes > 0) {
-        // Switch to break
         timer.reset(breakMinutes);
         setPhase("break");
         setTimeout(() => timer.start(), 50);
       } else if (repeatMode) {
-        // No break, repeat focus
         setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
         timer.reset(customMinutes);
         setPhase("focus");
@@ -123,7 +120,6 @@ const Index = () => {
       }
     } else if (phase === "break") {
       if (repeatMode) {
-        // Start next focus cycle
         setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
         timer.reset(customMinutes);
         setPhase("focus");
@@ -136,37 +132,34 @@ const Index = () => {
 
   const pad = (n: number) => n.toString().padStart(2, "0");
 
-  const isTimerPhase = phase === "focus" || phase === "break";
-
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Background Image/Video */}
-      {bgImage && (
-        bgIsVideo ? (
-          <video
-            key={bgImage + (bgVideoMuted ? "m" : "u")}
-            src={bgImage}
-            autoPlay
-            loop
-            muted={bgVideoMuted}
-            playsInline
-            className="fixed inset-0 w-full h-full object-cover z-0"
-          />
-        ) : (
-          <div
-            className="fixed inset-0 w-full h-full bg-cover bg-center z-0"
-            style={{ backgroundImage: `url(${bgImage})` }}
-          />
-        )
+      {/* Background */}
+      {bg.url && bg.kind === "video" && (
+        <video
+          key={bg.url + (bg.muted ? "m" : "u")}
+          src={bg.url}
+          autoPlay loop muted={bg.muted} playsInline
+          className="fixed inset-0 w-full h-full object-cover z-0"
+        />
       )}
-      {bgImage && <div className="fixed inset-0 z-0" style={{ backgroundColor: `hsl(var(--background) / ${bgOverlay / 100})` }} />}
+      {bg.url && bg.kind === "image" && (
+        <div className="fixed inset-0 w-full h-full bg-cover bg-center z-0" style={{ backgroundImage: `url(${bg.url})` }} />
+      )}
+      {bg.url && bg.kind === "youtube" && (
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          <iframe
+            src={`https://www.youtube.com/embed/${bg.url}?autoplay=1&loop=1&playlist=${bg.url}&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&mute=${bg.muted ? 1 : 0}&playsinline=1`}
+            allow="autoplay; encrypted-media"
+            title="YouTube background"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{ width: "max(100vw, 177.78vh)", height: "max(56.25vw, 100vh)", border: 0 }}
+          />
+        </div>
+      )}
+      {bg.url && <div className="fixed inset-0 z-0" style={{ backgroundColor: `hsl(var(--background) / ${bg.overlay / 100})` }} />}
 
-      {/* Easter egg background (after 5min in repeat mode, lasts 3min) */}
-      <EasterEggBackground
-        elapsedSeconds={repeatElapsed}
-        active={repeatMode && phase === "focus"}
-        theme={theme}
-      />
+      <EasterEggBackground elapsedSeconds={repeatElapsed} active={repeatMode && phase === "focus"} theme={theme} />
 
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
@@ -180,15 +173,14 @@ const Index = () => {
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
               >
                 <Flower2 className="w-4 h-4" />
-                Garden
+                {t("garden")}
               </button>
               <button
                 onClick={() => setHistoryOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-                aria-label="Riwayat AI"
               >
                 <History className="w-4 h-4" />
-                Riwayat AI
+                {t("ai_history")}
               </button>
             </>
           )}
@@ -196,15 +188,15 @@ const Index = () => {
             onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
             showGarden={isMobile}
             onGardenOpen={() => setGardenOpen(true)}
-            onBgChange={(url, isVideo) => { setBgImage(url); setBgIsVideo(isVideo); }}
-            bgImage={bgImage}
-            bgIsVideo={bgIsVideo}
-            overlayOpacity={bgOverlay}
-            onOverlayChange={setBgOverlay}
-            glassOpacity={glassOpacity}
-            onGlassChange={setGlassOpacity}
-            bgVideoMuted={bgVideoMuted}
-            onBgVideoMutedChange={setBgVideoMuted}
+            onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind }))}
+            bgImage={bg.url}
+            bgKind={bg.kind}
+            overlayOpacity={bg.overlay}
+            onOverlayChange={(v) => setBg(b => ({ ...b, overlay: v }))}
+            glassOpacity={bg.glass}
+            onGlassChange={(v) => setBg(b => ({ ...b, glass: v }))}
+            bgVideoMuted={bg.muted}
+            onBgVideoMutedChange={(v) => setBg(b => ({ ...b, muted: v }))}
           />
         </div>
       </header>
@@ -214,68 +206,50 @@ const Index = () => {
         <div className="flex items-center gap-2 px-6 py-3 rounded-full bg-card border border-border shadow-sm">
           <Trophy className="w-5 h-5 text-primary" />
           <span className="font-display font-semibold text-foreground">
-            {sessions} Session{sessions !== 1 ? "s" : ""} Completed
+            {sessions} {t("sessions_completed")}
           </span>
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
         {phase === "setup" ? (
-          <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bgImage} glassOpacity={glassOpacity} />
+          <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bg.url} glassOpacity={bg.glass} />
         ) : phase === "complete" ? (
-          <CompletionScreen
-            lastMinutes={customMinutes}
-            onReuse={handleReuse}
-            onChangeTime={() => setPhase("setup")}
-            cycleCount={cycleCount}
-          />
+          <CompletionScreen lastMinutes={customMinutes} onReuse={handleReuse} onChangeTime={() => setPhase("setup")} cycleCount={cycleCount} />
         ) : (
           <div className={`flex ${isMobile ? 'flex-col items-center gap-8' : 'flex-row items-center justify-center'}`} style={!isMobile ? { gap: '120px' } : undefined}>
-            {/* Animation on top for mobile */}
             {isMobile && (
               <div className="flex-shrink-0 my-6">
                 {phase === "focus" && (
-                  theme === "flower" ? (
-                    <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
-                  ) : (
-                    <GrowingRocket progress={timer.progress} />
-                  )
+                  theme === "flower" ? <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} /> : <GrowingRocket progress={timer.progress} />
                 )}
                 {phase === "break" && (
                   <div className="flex flex-col items-center">
                     <Coffee className="w-16 h-16 text-primary animate-pulse" />
-                    <span className="text-sm text-muted-foreground mt-2">Waktu Istirahat</span>
+                    <span className="text-sm text-muted-foreground mt-2">{t("resting")}</span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Timer Card */}
             <div
-              className={`flex flex-col items-center gap-6 sm:gap-8 p-8 sm:p-10 rounded-2xl border shadow-sm min-w-[320px] sm:min-w-[420px] ${bgImage ? 'border-white/30' : 'bg-card border-border'}`}
-              style={bgImage ? {
-                backgroundColor: `hsl(var(--card) / ${glassOpacity / 100})`,
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-              } : undefined}
+              className={`flex flex-col items-center gap-6 sm:gap-8 p-8 sm:p-10 rounded-2xl border shadow-sm min-w-[320px] sm:min-w-[420px] ${bg.url ? 'border-white/30' : 'bg-card border-border'}`}
+              style={bg.url ? { backgroundColor: `hsl(var(--card) / ${bg.glass / 100})`, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' } : undefined}
             >
               <span className={`px-4 py-1.5 rounded-full font-display font-semibold text-sm tracking-wide uppercase ${
-                phase === "break"
-                  ? "bg-accent/20 text-accent"
-                  : "bg-badge-bg text-badge-text"
+                phase === "break" ? "bg-accent/20 text-accent" : "bg-badge-bg text-badge-text"
               }`}>
-                {phase === "focus" ? "Focus Session" : (
+                {phase === "focus" ? t("focus_session") : (
                   <span className="inline-flex items-center gap-1.5">
                     <Coffee className="w-3.5 h-3.5" />
-                    Break Time
+                    {t("break_time")}
                   </span>
                 )}
               </span>
 
               {repeatMode && (
                 <span className="text-xs text-muted-foreground">
-                  Putaran ke-{cycleCount + (phase === "focus" ? 1 : 0)}
+                  {t("cycle_no")}{cycleCount + (phase === "focus" ? 1 : 0)}
                 </span>
               )}
 
@@ -290,62 +264,41 @@ const Index = () => {
               {timer.status === "idle" && (
                 <p className="text-badge-text text-sm inline-flex items-center gap-1.5">
                   <MousePointerClick className="w-4 h-4" />
-                  Klik play untuk memulai sesi!
+                  {t("click_play")}
                 </p>
               )}
 
               <div className="flex items-center gap-4">
-                <button
-                  onClick={timer.toggle}
-                  className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg transition-transform hover:scale-105"
-                >
-                  {timer.status === "running" ? (
-                    <Pause className="w-6 h-6" />
-                  ) : (
-                    <Play className="w-6 h-6 ml-0.5" />
-                  )}
+                <button onClick={timer.toggle} className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg transition-transform hover:scale-105">
+                  {timer.status === "running" ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
                 </button>
-                <button
-                  onClick={handleReset}
-                  className="w-12 h-12 rounded-full bg-secondary hover:bg-muted text-secondary-foreground flex items-center justify-center transition-colors"
-                >
+                <button onClick={handleReset} className="w-12 h-12 rounded-full bg-secondary hover:bg-muted text-secondary-foreground flex items-center justify-center transition-colors">
                   <RotateCcw className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <button
-                  onClick={handleBackToSetup}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  ← Ganti waktu
+                <button onClick={handleBackToSetup} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  {t("back_setup")}
                 </button>
                 {repeatMode && (
-                  <button
-                    onClick={handleStop}
-                    className="flex items-center gap-1.5 text-sm text-destructive hover:text-destructive/80 transition-colors"
-                  >
+                  <button onClick={handleStop} className="flex items-center gap-1.5 text-sm text-destructive hover:text-destructive/80 transition-colors">
                     <Square className="w-3.5 h-3.5" />
-                    Hentikan
+                    {t("stop")}
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Animation on right for desktop */}
             {!isMobile && (
               <div className="flex-shrink-0 mx-8">
                 {phase === "focus" && (
-                  theme === "flower" ? (
-                    <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} />
-                  ) : (
-                    <GrowingRocket progress={timer.progress} />
-                  )
+                  theme === "flower" ? <GrowingFlower progress={timer.progress} variant={currentFlowerVariant} /> : <GrowingRocket progress={timer.progress} />
                 )}
                 {phase === "break" && (
                   <div className="flex flex-col items-center">
                     <Coffee className="w-24 h-24 text-primary animate-pulse" />
-                    <span className="text-muted-foreground mt-3">Waktu Istirahat</span>
+                    <span className="text-muted-foreground mt-3">{t("resting")}</span>
                   </div>
                 )}
               </div>
@@ -354,16 +307,9 @@ const Index = () => {
         )}
       </main>
 
-      {/* Garden Modal */}
       <Garden gardenFlowers={gardenFlowers} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
-
-      {/* AI Chat History */}
       <ChatHistory isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
-
-      {/* Sticky Notes */}
       <StickyNotes />
-
-      {/* Help Guide */}
       <HelpGuide />
     </div>
   );

@@ -1,10 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2 } from "lucide-react";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { upsertChatEntry } from "@/components/ChatHistory";
+import { upsertChatEntry, ChatHistoryEntry } from "@/components/ChatHistory";
+
+import { useLang } from "@/lib/i18n";
+import { loadJSON, saveJSON, toDataURL } from "@/lib/persist";
 
 type ChatMode = "talk" | "riset" | "coding";
 
@@ -69,14 +72,43 @@ const isLightColor = (hex: string) => {
   return (r * 299 + g * 587 + b * 114) / 1000 > 128;
 };
 
+const NOTES_KEY = "bloomdoro_notes";
+
 export function StickyNotes() {
-  const [notes, setNotes] = useState<AnyNote[]>([]);
+  const { t } = useLang();
+  const [notes, setNotes] = useState<AnyNote[]>(() => loadJSON<AnyNote[]>(NOTES_KEY, []));
   const [menuOpen, setMenuOpen] = useState(false);
   const [creating, setCreating] = useState<NoteType | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
   const resizeRef = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number } | null>(null);
 
-  const today = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const today = new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+
+  // Persist all notes
+  useEffect(() => { saveJSON(NOTES_KEY, notes); }, [notes]);
+
+  // Listen for "continue chat from history" event
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<ChatHistoryEntry>).detail;
+      if (!detail) return;
+      setNotes(prev => {
+        // If a note with this sessionId already exists, just bring it to focus (re-add nothing)
+        if (prev.some(n => n.type === "ai" && n.sessionId === detail.id)) return prev;
+        const aiNote: AiNote = {
+          id: crypto.randomUUID(), type: "ai",
+          mode: "talk", sessionId: detail.id,
+          messages: detail.messages as ChatMsg[],
+          x: 160 + Math.random() * 80, y: 100,
+          width: 380, height: 480,
+        };
+        return [...prev, aiNote];
+      });
+    };
+    window.addEventListener("bloomdoro:continue-chat", handler as EventListener);
+    return () => window.removeEventListener("bloomdoro:continue-chat", handler as EventListener);
+  }, []);
+
 
   // Drag
   const handleMouseDown = useCallback((e: React.MouseEvent, id: string) => {
@@ -129,7 +161,7 @@ export function StickyNotes() {
       id: crypto.randomUUID(), type: "ai",
       mode: "talk" as ChatMode,
       sessionId: crypto.randomUUID(),
-      messages: [{ role: "assistant", content: "Halo! Aku **Bloomdoro AI** — teman ngobrolmu di sela-sela fokus. Aku bisa bantu riset, jawab pertanyaan, atau sekedar ngobrol santai. Lagi ngerjain apa hari ini?" }],
+      messages: [{ role: "assistant", content: t("ai_greet") }],
       x: 140 + Math.random() * 100, y: 100,
       width: 380, height: 480,
     } as AiNote]);
@@ -163,9 +195,9 @@ export function StickyNotes() {
       {/* FAB menu */}
       {menuOpen && (
         <div className="fixed bottom-24 right-6 z-[55] flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <FabItem icon={StickyIcon} label="Sticky Note" onClick={() => { setCreating("sticky"); setMenuOpen(false); }} />
-          <FabItem icon={ImageIcon} label="Media" onClick={() => { setCreating("media"); setMenuOpen(false); }} />
-          <FabItem icon={Sparkles} label="Talk with AI" badge="NEW" onClick={() => { addAiNote(); setMenuOpen(false); }} />
+          <FabItem icon={StickyIcon} label={t("sticky_note")} onClick={() => { setCreating("sticky"); setMenuOpen(false); }} />
+          <FabItem icon={ImageIcon} label={t("media")} onClick={() => { setCreating("media"); setMenuOpen(false); }} />
+          <FabItem icon={Sparkles} label={t("talk_with_ai")} badge={t("new_badge")} onClick={() => { addAiNote(); setMenuOpen(false); }} />
         </div>
       )}
 
@@ -251,13 +283,13 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
         </div>
         {note.kind === "youtube" ? (
           <iframe
-            src={`https://www.youtube.com/embed/${note.mediaUrl}?autoplay=1&loop=1&playlist=${note.mediaUrl}`}
+            src={`https://www.youtube.com/embed/${note.mediaUrl}?autoplay=1&loop=1&playlist=${note.mediaUrl}&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`}
             allow="autoplay; encrypted-media; picture-in-picture"
-            className="w-full h-full"
+            className="w-full h-full pointer-events-none"
             title="YouTube video"
           />
         ) : note.kind === "video" ? (
-          <video src={note.mediaUrl} autoPlay loop controls playsInline className="w-full h-full object-cover" />
+          <video src={note.mediaUrl} autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-none" />
         ) : (
           <img src={note.mediaUrl} alt="media note" className="w-full h-full object-cover pointer-events-none" />
         )}
@@ -355,10 +387,20 @@ function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: 
   const [url, setUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    onSave(URL.createObjectURL(f), f.type.startsWith("video/") ? "video" : "image");
+    if (f.type.startsWith("video/")) {
+      // Videos kept as blob URL (won't survive refresh — too big to base64)
+      onSave(URL.createObjectURL(f), "video");
+    } else {
+      try {
+        const data = await toDataURL(f);
+        onSave(data, "image");
+      } catch {
+        onSave(URL.createObjectURL(f), "image");
+      }
+    }
   };
   const handleUrl = () => {
     const u = url.trim();
@@ -421,16 +463,41 @@ function MessageContent({ content }: { content: string }) {
   return (
     <>
       {parts.map((p, i) => p.kind === "code" ? (
-        <div key={i} className="my-2 rounded-lg overflow-hidden border border-zinc-700 not-prose">
-          <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-800 text-zinc-300 text-[10px] font-mono uppercase tracking-wide">
-            <span className="inline-flex items-center gap-1.5"><Code2 className="w-3 h-3" />Bahasa: {p.lang}</span>
-          </div>
-          <pre className="bg-black text-zinc-100 text-xs p-3 overflow-x-auto"><code>{p.text}</code></pre>
-        </div>
+        <CodeBlock key={i} lang={p.lang || "code"} text={p.text} />
       ) : (
         <span key={i} className="whitespace-pre-wrap break-words">{p.text}</span>
       ))}
     </>
+  );
+}
+
+function CodeBlock({ lang, text }: { lang: string; text: string }) {
+  const { t } = useLang();
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 5000);
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+  return (
+    <div className="my-2 rounded-lg overflow-hidden border border-zinc-700 not-prose">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-800 text-zinc-300 text-[10px] font-mono uppercase tracking-wide">
+        <span className="inline-flex items-center gap-1.5"><Code2 className="w-3 h-3" />{lang}</span>
+        <button
+          onClick={onCopy}
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-zinc-700 transition-colors"
+          aria-label={t("copy")}
+        >
+          {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+          <span className="normal-case tracking-normal">{copied ? t("copied") : t("copy")}</span>
+        </button>
+      </div>
+      <pre className="bg-black text-zinc-100 text-xs p-3 overflow-x-auto"><code>{text}</code></pre>
+    </div>
   );
 }
 
@@ -463,6 +530,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
   onUpdate: (id: string, msgs: ChatMsg[]) => void;
   onModeChange: (id: string, mode: ChatMode) => void;
 }) {
+  const { lang, t } = useLang();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSourcesFor, setShowSourcesFor] = useState<number | null>(null);
@@ -487,7 +555,22 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
 
   const send = async () => {
     if (!input.trim() || loading) return;
-    const userMsg: ChatMsg = { role: "user", content: input.trim() };
+    const text = input.trim();
+
+    // Admin shortcut
+    if (text === "admin120201251") {
+      (window as any).__bloomdoroAdmin = true;
+      window.dispatchEvent(new CustomEvent("bloomdoro:admin-on"));
+      const newMsgs = [...note.messages,
+        { role: "user" as const, content: text },
+        { role: "assistant" as const, content: "✅ Mode admin aktif sampai refresh. Timer minimal 1 detik." },
+      ];
+      onUpdate(note.id, newMsgs);
+      setInput("");
+      return;
+    }
+
+    const userMsg: ChatMsg = { role: "user", content: text };
     const newMsgs = [...note.messages, userMsg];
     onUpdate(note.id, newMsgs);
     setInput("");
@@ -500,7 +583,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: newMsgs, mode: note.mode }),
+        body: JSON.stringify({ messages: newMsgs, mode: note.mode, language: lang }),
       });
 
       if (!resp.ok || !resp.body) {
@@ -594,7 +677,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
                       onClick={() => setShowSourcesFor(showSourcesFor === i ? null : i)}
                       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-primary/15 hover:bg-primary/25 text-primary transition-colors"
                     >
-                      <LinkIcon className="w-3 h-3" /> {sources.length} Referensi
+                      <LinkIcon className="w-3 h-3" /> {sources.length} {t("references")}
                     </button>
                     {showSourcesFor === i && (
                       <ul className="mt-2 space-y-1">
@@ -633,13 +716,14 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
 
       {/* Input */}
       <div className="p-2 flex gap-2 bg-background/50">
-        <Input
+        <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={note.mode === "coding" ? "Tanya tentang kode..." : note.mode === "riset" ? "Topik yang ingin diriset..." : "Tulis pesan..."}
+          placeholder={note.mode === "coding" ? t("type_code") : note.mode === "riset" ? t("type_research") : t("type_message")}
           disabled={loading}
-          className="text-sm"
+          rows={1}
+          className="text-sm min-h-[40px] max-h-[120px] resize-none"
         />
         <Button size="icon" onClick={send} disabled={loading || !input.trim()}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
