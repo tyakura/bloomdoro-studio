@@ -9,7 +9,7 @@ interface EasterEggBackgroundProps {
   theme: TimerTheme;
 }
 
-const TRIGGER_AT = 5 * 60; // 5 minutes
+const TRIGGER_AT = 10 * 60; // 10 minutes
 const DURATION = 3 * 60; // visible for 3 minutes after trigger
 
 export function EasterEggBackground({ elapsedSeconds, active, theme }: EasterEggBackgroundProps) {

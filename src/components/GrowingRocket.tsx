@@ -6,24 +6,16 @@ interface GrowingRocketProps {
 export function GrowingRocket({ progress }: GrowingRocketProps) {
   const p = Math.max(0, Math.min(1, progress));
 
-  // Phase timing:
-  // 0.00 - 0.08: ignition (flame builds up while rocket sits on pad)
-  // 0.08 - 0.95: liftoff (rocket rises)
-  // 0.95 - 1.00: landed on moon (no flip, flame off)
+  // 0.00–0.08 ignition, 0.08–0.95 liftoff, 0.95–1.00 hovering near moon (no flip, flame off)
   const ignitionProgress = Math.min(1, p / 0.08);
   const liftoffProgress = Math.max(0, Math.min(1, (p - 0.08) / 0.87));
   const isLanded = p >= 0.95;
 
-  // Rocket starts on landing pad with fin tips touching pad surface.
-  // Longer flight distance from pad to moon.
   const baseY = 175;
-  const rocketY = isLanded
-    ? 55 // resting just above the moon surface
-    : baseY - liftoffProgress * 130;
+  // Smooth — at 0.95 liftoffProgress is 1, so rocketY = 45. When landed, hold at 45.
+  const rocketY = isLanded ? 45 : baseY - liftoffProgress * 130;
 
   const rocketRotation = 0; // never flip
-
-  // Flame: ignites, sustains during flight, OFF when landed
   const flameScale = isLanded ? 0 : ignitionProgress;
 
   const starOpacity = Math.max(0, Math.min(1, (p - 0.15) / 0.5));
