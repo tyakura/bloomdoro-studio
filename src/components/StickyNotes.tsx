@@ -283,13 +283,13 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
         </div>
         {note.kind === "youtube" ? (
           <iframe
-            src={`https://www.youtube.com/embed/${note.mediaUrl}?autoplay=1&loop=1&playlist=${note.mediaUrl}`}
+            src={`https://www.youtube.com/embed/${note.mediaUrl}?autoplay=1&loop=1&playlist=${note.mediaUrl}&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`}
             allow="autoplay; encrypted-media; picture-in-picture"
-            className="w-full h-full"
+            className="w-full h-full pointer-events-none"
             title="YouTube video"
           />
         ) : note.kind === "video" ? (
-          <video src={note.mediaUrl} autoPlay loop controls playsInline className="w-full h-full object-cover" />
+          <video src={note.mediaUrl} autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-none" />
         ) : (
           <img src={note.mediaUrl} alt="media note" className="w-full h-full object-cover pointer-events-none" />
         )}
