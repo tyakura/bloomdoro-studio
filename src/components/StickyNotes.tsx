@@ -72,14 +72,43 @@ const isLightColor = (hex: string) => {
   return (r * 299 + g * 587 + b * 114) / 1000 > 128;
 };
 
+const NOTES_KEY = "bloomdoro_notes";
+
 export function StickyNotes() {
-  const [notes, setNotes] = useState<AnyNote[]>([]);
+  const { t } = useLang();
+  const [notes, setNotes] = useState<AnyNote[]>(() => loadJSON<AnyNote[]>(NOTES_KEY, []));
   const [menuOpen, setMenuOpen] = useState(false);
   const [creating, setCreating] = useState<NoteType | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
   const resizeRef = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number } | null>(null);
 
-  const today = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const today = new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+
+  // Persist all notes
+  useEffect(() => { saveJSON(NOTES_KEY, notes); }, [notes]);
+
+  // Listen for "continue chat from history" event
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<ChatHistoryEntry>).detail;
+      if (!detail) return;
+      setNotes(prev => {
+        // If a note with this sessionId already exists, just bring it to focus (re-add nothing)
+        if (prev.some(n => n.type === "ai" && n.sessionId === detail.id)) return prev;
+        const aiNote: AiNote = {
+          id: crypto.randomUUID(), type: "ai",
+          mode: "talk", sessionId: detail.id,
+          messages: detail.messages as ChatMsg[],
+          x: 160 + Math.random() * 80, y: 100,
+          width: 380, height: 480,
+        };
+        return [...prev, aiNote];
+      });
+    };
+    window.addEventListener("bloomdoro:continue-chat", handler as EventListener);
+    return () => window.removeEventListener("bloomdoro:continue-chat", handler as EventListener);
+  }, []);
+
 
   // Drag
   const handleMouseDown = useCallback((e: React.MouseEvent, id: string) => {
