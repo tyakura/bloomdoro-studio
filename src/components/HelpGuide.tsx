@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HelpCircle, Timer, Flower2, Rocket, Music, Settings, StickyNote, Repeat, Sparkles, Image as ImageIcon, Plus } from "lucide-react";
+import { HelpCircle, Timer, Flower2, Rocket, Music, Settings, StickyNote, Repeat, Sparkles, Image as ImageIcon, Plus, Languages } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,74 +7,32 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useLang } from "@/lib/i18n";
 
 const FAQ = [
-  {
-    icon: Timer,
-    q: "Bagaimana cara memulai sesi fokus?",
-    a: "Atur durasi fokus dan istirahat di halaman setup, pilih tema (bunga/roket), lalu klik tombol play untuk memulai.",
-  },
-  {
-    icon: Repeat,
-    q: "Apa fungsi mode Repeat?",
-    a: "Mode repeat akan otomatis mengulang sesi fokus dan istirahat secara terus-menerus sampai kamu menekan tombol Hentikan.",
-  },
-  {
-    icon: Flower2,
-    q: "Bagaimana cara mengisi Garden?",
-    a: "Setiap kali kamu menyelesaikan satu sesi fokus dengan tema bunga, satu bunga akan ditambahkan ke Garden (maks 20 bunga).",
-  },
-  {
-    icon: Music,
-    q: "Bagaimana cara menambah musik & suara ambient?",
-    a: "Buka Settings → masukkan link YouTube atau upload file musik. Suara ambient (rain, fire, dll) juga di Settings.",
-  },
-  {
-    icon: Plus,
-    q: "Apa isi tombol + di pojok kanan bawah?",
-    a: "Klik untuk membuka 3 pilihan: Sticky Note, Media (gambar/video draggable), dan Talk with AI (chat dengan Bloomdoro AI).",
-  },
-  {
-    icon: StickyNote,
-    q: "Cara membuat sticky note?",
-    a: "Klik + → Sticky Note. Isi judul/deskripsi (Enter untuk baris baru / list), pilih warna, lalu drag note ke posisi yang kamu mau.",
-  },
-  {
-    icon: ImageIcon,
-    q: "Apa itu Media note?",
-    a: "Pilih + → Media untuk menempel gambar atau video di layar. Drag untuk pindah, tarik pojok kanan-bawah untuk memperbesar.",
-  },
-  {
-    icon: Sparkles,
-    q: "Apa itu Talk with AI? (NEW)",
-    a: "Pilih + → Talk with AI. Pilih mode di atas chat: Talk biasa (singkat), Riset (analisis + link referensi), atau Coding (kode dengan syntax highlight). Riwayat chat tersimpan di tombol Riwayat AI di header.",
-  },
-  {
-    icon: Settings,
-    q: "Bagaimana mengganti background, suara video & efek kaca?",
-    a: "Buka Settings → Background. Upload gambar/video, atur Overlay Opacity, atur Buram Kotak Waktu (Glass), dan aktifkan Suara Background bila video punya audio.",
-  },
-  {
-    icon: Rocket,
-    q: "Apa beda tema bunga & roket?",
-    a: "Bunga tumbuh perlahan saat fokus berjalan. Roket menyalakan api lalu terbang ke bulan ketika sesi hampir selesai.",
-  },
+  { icon: Timer, q: "Bagaimana cara memulai sesi fokus?", a: "Atur durasi fokus & istirahat, pilih tema (bunga/roket), lalu klik play." },
+  { icon: Repeat, q: "Apa fungsi mode Repeat?", a: "Mengulang sesi fokus & istirahat otomatis sampai kamu klik Hentikan." },
+  { icon: Flower2, q: "Bagaimana cara mengisi Garden?", a: "Setiap sesi fokus selesai dengan tema bunga, satu bunga ditambahkan (maks 20)." },
+  { icon: Languages, q: "Bagaimana ganti bahasa?", a: "Settings → Bahasa: Indonesia, English, Arab, Jepang, China. Semua teks UI & sapaan AI ikut berubah." },
+  { icon: Music, q: "Cara menambah musik & ambient?", a: "Settings → Upload musik atau tempel link YouTube (klik Go). Ambient sound juga di Settings." },
+  { icon: Plus, q: "Apa isi tombol + di pojok kanan bawah?", a: "Sticky Note, Media (gambar/video draggable), dan Talk with AI." },
+  { icon: StickyNote, q: "Cara membuat sticky note?", a: "+ → Sticky Note. Isi judul/deskripsi, pilih warna, drag ke posisinya." },
+  { icon: ImageIcon, q: "Apa itu Media note?", a: "+ → Media. Tempel YouTube/file/URL. Drag header untuk pindah, pojok kanan-bawah untuk resize." },
+  { icon: Sparkles, q: "Apa itu Talk with AI?", a: "Pilih mode Talk (singkat), Riset (analisis + link referensi), atau Coding (kode + tombol salin). Shift+Enter untuk baris baru, Enter untuk kirim. Riwayat di tombol Riwayat AI — kamu bisa Lanjutkan mengobrol." },
+  { icon: Settings, q: "Background gambar/video & efek kaca?", a: "Settings → Background. Upload atau tempel URL (gambar/video/YouTube), klik Go. Atur Overlay, Glass, dan suara background." },
+  { icon: Rocket, q: "Beda tema bunga & roket?", a: "Bunga tumbuh perlahan; roket menyalakan api lalu terbang ke bulan dan berhenti di sana." },
+  { icon: Sparkles, q: "Data saya hilang kalau refresh?", a: "Tidak. Sticky note, media, background gambar, garden, bahasa & sesi tersimpan otomatis (hingga 10 MB di browser)." },
 ];
 
-const EASTER_EGG = {
-  icon: Sparkles,
-  q: "Easter Egg",
-  a: "Ada easter egg dalam sini...",
-};
-
 export function HelpGuide() {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        aria-label="Bantuan & Panduan"
+        aria-label="Help"
         className="fixed bottom-6 left-6 z-50 w-7 h-7 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg flex items-center justify-center transition-transform hover:scale-110"
       >
         <HelpCircle className="w-4 h-4" />
@@ -85,19 +43,14 @@ export function HelpGuide() {
           <DialogHeader>
             <DialogTitle className="font-display flex items-center gap-2">
               <HelpCircle className="w-5 h-5 text-primary" />
-              Panduan Bloomdoro
+              {t("guide_title")}
             </DialogTitle>
-            <DialogDescription>
-              Pertanyaan umum & panduan singkat menggunakan aplikasi.
-            </DialogDescription>
+            <DialogDescription>{t("guide_subtitle")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 mt-2">
             {FAQ.map(({ icon: Icon, q, a }, i) => (
-              <div
-                key={i}
-                className="rounded-lg border border-border bg-card/50 p-3 hover:bg-card transition-colors"
-              >
+              <div key={i} className="rounded-lg border border-border bg-card/50 p-3 hover:bg-card transition-colors">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-4 h-4 text-primary" />
@@ -110,17 +63,12 @@ export function HelpGuide() {
               </div>
             ))}
 
-            {/* Easter egg teaser at the very bottom */}
-            <div className="rounded-lg border border-border bg-card/50 p-3" style={{ opacity: 0.5 }}>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <EASTER_EGG.icon className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm text-foreground mb-1">{EASTER_EGG.q}</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed italic">{EASTER_EGG.a}</p>
-                </div>
-              </div>
+            {/* Contact + easter egg hint at the bottom — no box, no icon, thin text */}
+            <div className="pt-4 mt-2 space-y-1.5 text-center">
+              <p className="text-[11px] text-muted-foreground">{t("contact_suggest")}</p>
+              <p className="text-[11px] italic text-muted-foreground" style={{ opacity: 0.3 }}>
+                {t("easter_hint")}
+              </p>
             </div>
           </div>
         </DialogContent>
