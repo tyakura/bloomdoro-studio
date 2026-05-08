@@ -387,10 +387,20 @@ function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: 
   const [url, setUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    onSave(URL.createObjectURL(f), f.type.startsWith("video/") ? "video" : "image");
+    if (f.type.startsWith("video/")) {
+      // Videos kept as blob URL (won't survive refresh — too big to base64)
+      onSave(URL.createObjectURL(f), "video");
+    } else {
+      try {
+        const data = await toDataURL(f);
+        onSave(data, "image");
+      } catch {
+        onSave(URL.createObjectURL(f), "image");
+      }
+    }
   };
   const handleUrl = () => {
     const u = url.trim();
