@@ -463,16 +463,41 @@ function MessageContent({ content }: { content: string }) {
   return (
     <>
       {parts.map((p, i) => p.kind === "code" ? (
-        <div key={i} className="my-2 rounded-lg overflow-hidden border border-zinc-700 not-prose">
-          <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-800 text-zinc-300 text-[10px] font-mono uppercase tracking-wide">
-            <span className="inline-flex items-center gap-1.5"><Code2 className="w-3 h-3" />Bahasa: {p.lang}</span>
-          </div>
-          <pre className="bg-black text-zinc-100 text-xs p-3 overflow-x-auto"><code>{p.text}</code></pre>
-        </div>
+        <CodeBlock key={i} lang={p.lang || "code"} text={p.text} />
       ) : (
         <span key={i} className="whitespace-pre-wrap break-words">{p.text}</span>
       ))}
     </>
+  );
+}
+
+function CodeBlock({ lang, text }: { lang: string; text: string }) {
+  const { t } = useLang();
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 5000);
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+  return (
+    <div className="my-2 rounded-lg overflow-hidden border border-zinc-700 not-prose">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-800 text-zinc-300 text-[10px] font-mono uppercase tracking-wide">
+        <span className="inline-flex items-center gap-1.5"><Code2 className="w-3 h-3" />{lang}</span>
+        <button
+          onClick={onCopy}
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-zinc-700 transition-colors"
+          aria-label={t("copy")}
+        >
+          {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+          <span className="normal-case tracking-normal">{copied ? t("copied") : t("copy")}</span>
+        </button>
+      </div>
+      <pre className="bg-black text-zinc-100 text-xs p-3 overflow-x-auto"><code>{text}</code></pre>
+    </div>
   );
 }
 
