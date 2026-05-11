@@ -121,7 +121,7 @@ const Index = () => {
     } else {
       setPhase("complete");
     }
-  }, [timer.status, phase, breakMinutes, repeatMode, customMinutes, theme, currentFlowerVariant, timer]);
+  }, [timer.status, timer.start, phase, breakMinutes, repeatMode, customMinutes, theme, currentFlowerVariant]);
 
   const pad = (n: number) => n.toString().padStart(2, "0");
 
