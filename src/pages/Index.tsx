@@ -97,11 +97,11 @@ const Index = () => {
     setTimeout(() => timer.start(customMinutes), 50);
   }, [timer, customMinutes]);
 
-  if (timer.status === "complete" && (phase === "focus" || phase === "break")) {
+  useEffect(() => {
+    if (timer.status !== "complete" || (phase !== "focus" && phase !== "break")) return;
     musicStopRef.current?.();
     if (phase === "focus") {
-      const newCycleCount = cycleCount + 1;
-      setCycleCount(newCycleCount);
+      setCycleCount((c) => c + 1);
       setSessions((s) => s + 1);
       if (theme === "flower") setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
       if (breakMinutes > 0) {
@@ -114,16 +114,14 @@ const Index = () => {
       } else {
         setPhase("complete");
       }
-    } else if (phase === "break") {
-      if (repeatMode) {
-        setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
-        setPhase("focus");
-        setTimeout(() => timer.start(customMinutes), 50);
-      } else {
-        setPhase("complete");
-      }
+    } else if (repeatMode) {
+      setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
+      setPhase("focus");
+      setTimeout(() => timer.start(customMinutes), 50);
+    } else {
+      setPhase("complete");
     }
-  }
+  }, [timer.status, phase, breakMinutes, repeatMode, customMinutes, theme, currentFlowerVariant, timer]);
 
   const pad = (n: number) => n.toString().padStart(2, "0");
 
