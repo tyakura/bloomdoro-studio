@@ -41,6 +41,7 @@ const Index = () => {
   const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
+  const completionHandledRef = useRef(false);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
 
@@ -98,7 +99,12 @@ const Index = () => {
   }, [timer, customMinutes]);
 
   useEffect(() => {
-    if (timer.status !== "complete" || (phase !== "focus" && phase !== "break")) return;
+    if (timer.status !== "complete") {
+      completionHandledRef.current = false;
+      return;
+    }
+    if (completionHandledRef.current || (phase !== "focus" && phase !== "break")) return;
+    completionHandledRef.current = true;
     musicStopRef.current?.();
     if (phase === "focus") {
       setCycleCount((c) => c + 1);
@@ -181,7 +187,7 @@ const Index = () => {
             onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
             showGarden={isMobile}
             onGardenOpen={() => setGardenOpen(true)}
-            onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind }))}
+            onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
             bgImage={bg.url}
             bgKind={bg.kind}
             overlayOpacity={bg.overlay}
