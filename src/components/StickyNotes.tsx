@@ -504,6 +504,42 @@ function CodeBlock({ lang, text }: { lang: string; text: string }) {
   );
 }
 
+function AttachmentPreview({ attachments }: { attachments?: ChatAttachment[] }) {
+  if (!attachments?.length) return null;
+  return (
+    <div className="mt-2 space-y-1.5">
+      {attachments.map((a, i) => (
+        <div key={`${a.name}-${i}`} className="rounded-lg border border-border bg-background/40 p-2 text-xs">
+          {a.type.startsWith("image/") && a.dataUrl ? (
+            <img src={a.dataUrl} alt={a.name} className="max-h-32 w-full rounded-md object-cover" />
+          ) : a.type.startsWith("audio/") && a.dataUrl ? (
+            <audio src={a.dataUrl} controls className="w-full" />
+          ) : (
+            <div className="flex items-center gap-2 break-all"><FileText className="h-3.5 w-3.5 flex-shrink-0" />{a.name}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+async function fileToAttachment(file: File): Promise<ChatAttachment> {
+  const base: ChatAttachment = { name: file.name, type: file.type || "application/octet-stream" };
+  if (file.type.startsWith("image/") || file.type.startsWith("audio/")) return { ...base, dataUrl: await toDataURL(file, 1200) };
+  if (file.type.startsWith("text/") || /\.(md|csv|json|txt|html|css|js|ts|tsx)$/i.test(file.name)) return { ...base, text: (await file.text()).slice(0, 12000) };
+  return base;
+}
+
+function exportChatToPdf(messages: ChatMsg[]) {
+  const html = messages.map(m => `<section style="margin:0 0 16px"><b>${m.role === "user" ? "User" : "Bloomdoro AI"}</b><p style="white-space:pre-wrap">${m.content.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!))}</p></section>`).join("");
+  const win = window.open("", "_blank");
+  if (!win) return toast.error("Popup diblokir, izinkan popup untuk ekspor PDF.");
+  win.document.write(`<html><head><title>Bloomdoro AI Chat</title></head><body style="font-family:sans-serif;padding:32px;line-height:1.5"><h1>Bloomdoro AI Chat</h1>${html}</body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
+}
+
 // Parse "SOURCES:" footer into reference links
 function parseSources(content: string): { body: string; sources: { title: string; url: string }[] } {
   const idx = content.search(/\n?SOURCES:\s*\n/i);
