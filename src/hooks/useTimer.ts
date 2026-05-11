@@ -48,8 +48,16 @@ export function useTimer(initialMinutes: number) {
   }, [tick]);
 
   const toggle = useCallback(() => {
-    setStatus((s) => (s === "running" ? "paused" : "running"));
-  }, []);
+    setStatus((s) => {
+      if (s === "running") {
+        tick();
+        endAtRef.current = null;
+        return "paused";
+      }
+      endAtRef.current = Date.now() + remainingSeconds * 1000;
+      return "running";
+    });
+  }, [remainingSeconds, tick]);
 
   useEffect(() => {
     if (status === "running") {
