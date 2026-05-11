@@ -735,6 +735,7 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
                   : "bg-secondary text-secondary-foreground rounded-bl-sm"
               }`}>
                 {body ? <MessageContent content={body} /> : (loading ? <span className="opacity-60">…</span> : null)}
+                <AttachmentPreview attachments={m.attachments} />
                 {!isUser && sources.length > 0 && (
                   <div className="mt-2">
                     <button
@@ -779,7 +780,37 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
       </div>
 
       {/* Input */}
-      <div className="p-2 flex gap-2 bg-background/50">
+      <div className="p-2 bg-background/50">
+        {attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {attachments.map((a, i) => (
+              <button
+                key={`${a.name}-${i}`}
+                onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-[11px] text-secondary-foreground hover:bg-muted"
+              >
+                <Paperclip className="h-3 w-3" /> {a.name.slice(0, 18)} <X className="h-3 w-3" />
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+        <div className="relative">
+          <input ref={fileRef} type="file" multiple accept="image/*,audio/*,.pdf,.txt,.md,.csv,.json,.js,.ts,.tsx,.html,.css" onChange={(e) => handleFiles(e.target.files)} className="hidden" />
+          {attachOpen && (
+            <div className="absolute bottom-12 left-0 z-10 w-44 rounded-lg border border-border bg-card p-1 shadow-lg">
+              <button onClick={() => fileRef.current?.click()} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
+                <Paperclip className="h-3.5 w-3.5" /> File / gambar / audio
+              </button>
+              <button onClick={() => exportChatToPdf(note.messages)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
+                <FileText className="h-3.5 w-3.5" /> Export PDF
+              </button>
+            </div>
+          )}
+          <Button size="icon" variant="outline" onClick={() => setAttachOpen(o => !o)} disabled={loading}>
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -789,9 +820,10 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
           rows={1}
           className="text-sm min-h-[40px] max-h-[120px] resize-none"
         />
-        <Button size="icon" onClick={send} disabled={loading || !input.trim()}>
+        <Button size="icon" onClick={send} disabled={loading || (!input.trim() && attachments.length === 0)}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </Button>
+        </div>
       </div>
 
       <ResizeHandle onMouseDown={(e) => onResizeDown(e, note)} />
