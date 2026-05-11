@@ -31,8 +31,13 @@ export function useTimer(initialMinutes: number) {
     setStatus("idle");
   }, [initialMinutes]);
 
-  const start = useCallback(() => {
-    endAtRef.current = Date.now() + remainingSeconds * 1000;
+  const start = useCallback((newMinutes?: number) => {
+    const secs = newMinutes !== undefined ? Math.max(1, Math.round(newMinutes * 60)) : remainingSeconds;
+    if (newMinutes !== undefined) {
+      setTotalSeconds(secs);
+      setRemainingSeconds(secs);
+    }
+    endAtRef.current = Date.now() + secs * 1000;
     setStatus("running");
   }, [remainingSeconds]);
 
