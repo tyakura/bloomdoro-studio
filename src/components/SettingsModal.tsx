@@ -282,7 +282,7 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
                     <label className="text-sm text-muted-foreground mb-1 block">{t("glass_opacity")}: {glassOpacity}%</label>
                     <Slider value={[glassOpacity]} onValueChange={(val) => onGlassChange?.(val[0])} max={100} min={0} step={5} />
                   </div>
-                  {bgKind === "video" && (
+                  {(bgKind === "video" || bgKind === "youtube") && (
                     <button
                       onClick={() => onBgVideoMutedChange?.(!bgVideoMuted)}
                       className={`w-full px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors ${
