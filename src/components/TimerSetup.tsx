@@ -83,22 +83,22 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
 
         <div className="flex items-center gap-6">
           <button
-            onClick={() => setMinutes((m) => Math.max(1, m - 5))}
+            onClick={dec}
             className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors"
           >
             <Minus className="w-5 h-5" />
           </button>
           <div className="font-display text-7xl font-bold tabular-nums text-foreground min-w-[120px] text-center">
-            {minutes}
+            {adminMode && minutes < 1 ? "1s" : minutes}
           </div>
           <button
-            onClick={() => setMinutes((m) => Math.min(120, m + 5))}
+            onClick={inc}
             className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors"
           >
             <Plus className="w-5 h-5" />
           </button>
         </div>
-        <span className="text-muted-foreground text-sm -mt-4">minutes</span>
+        <span className="text-muted-foreground text-sm -mt-4">{adminMode && minutes < 1 ? "second" : "minutes"}</span>
 
         <div className="flex gap-2 flex-wrap justify-center">
           {PRESETS.map((p) => (
