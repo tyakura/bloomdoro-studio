@@ -277,10 +277,10 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
         style={baseStyle}
       >
         <div
-          className="absolute top-0 left-0 right-0 h-7 z-10 cursor-grab active:cursor-grabbing bg-gradient-to-b from-black/40 to-transparent flex items-center justify-end px-2"
+          className="absolute top-0 left-0 right-0 h-7 z-10 cursor-grab active:cursor-grabbing touch-none bg-gradient-to-b from-black/40 to-transparent flex items-center justify-end px-2"
           onPointerDown={(e) => onPointerDown(e, note.id)}
         >
-          <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="bg-background/80 hover:bg-background rounded-full p-1">
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="bg-background/80 hover:bg-background rounded-full p-1">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -531,7 +531,8 @@ async function fileToAttachment(file: File): Promise<ChatAttachment> {
 }
 
 function exportChatToPdf(messages: ChatMsg[]) {
-  const html = messages.map(m => `<section style="margin:0 0 16px"><b>${m.role === "user" ? "User" : "Bloomdoro AI"}</b><p style="white-space:pre-wrap">${m.content.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!))}</p></section>`).join("");
+  const escapeHtml = (value: string) => value.replace(/[&<>]/g, (c) => c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;");
+  const html = messages.map(m => `<section style="margin:0 0 16px"><b>${m.role === "user" ? "User" : "Bloomdoro AI"}</b><p style="white-space:pre-wrap">${escapeHtml(m.content)}</p></section>`).join("");
   const win = window.open("", "_blank");
   if (!win) return toast.error("Popup diblokir, izinkan popup untuk ekspor PDF.");
   win.document.write(`<html><head><title>Bloomdoro AI Chat</title></head><body style="font-family:sans-serif;padding:32px;line-height:1.5"><h1>Bloomdoro AI Chat</h1>${html}</body></html>`);
