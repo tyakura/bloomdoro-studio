@@ -571,8 +571,11 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
 }) {
   const { lang, t } = useLang();
   const [input, setInput] = useState("");
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [attachOpen, setAttachOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSourcesFor, setShowSourcesFor] = useState<number | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const startedAt = useRef<number>(Date.now());
 
@@ -592,8 +595,15 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
     });
   }, [note.messages, note.sessionId]);
 
+  const handleFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const converted = await Promise.all(Array.from(files).slice(0, 4).map(fileToAttachment));
+    setAttachments(prev => [...prev, ...converted].slice(0, 6));
+    setAttachOpen(false);
+  };
+
   const send = async () => {
-    if (!input.trim() || loading) return;
+    if ((!input.trim() && attachments.length === 0) || loading) return;
     const text = input.trim();
 
     // Admin shortcut
@@ -609,11 +619,26 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
       return;
     }
 
-    const userMsg: ChatMsg = { role: "user", content: text };
+    const attachmentText = attachments.map(a => a.text ? `\n\n[File ${a.name}]\n${a.text}` : `\n\n[Lampiran: ${a.name} (${a.type})]`).join("");
+    const userMsg: ChatMsg = { role: "user", content: text || "Lampiran", attachments };
     const newMsgs = [...note.messages, userMsg];
     onUpdate(note.id, newMsgs);
     setInput("");
+    setAttachments([]);
     setLoading(true);
+
+    const apiMessages = newMsgs.map(m => {
+      const images = m.attachments?.filter(a => a.type.startsWith("image/") && a.dataUrl) || [];
+      const textContent = `${m.content}${m === userMsg ? attachmentText : ""}`;
+      if (images.length === 0) return { role: m.role, content: textContent };
+      return {
+        role: m.role,
+        content: [
+          { type: "text", text: textContent },
+          ...images.map(a => ({ type: "image_url", image_url: { url: a.dataUrl } })),
+        ],
+      };
+    });
 
     try {
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
@@ -622,7 +647,7 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: newMsgs, mode: note.mode, language: lang }),
+        body: JSON.stringify({ messages: apiMessages, mode: note.mode, language: lang }),
       });
 
       if (!resp.ok || !resp.body) {
