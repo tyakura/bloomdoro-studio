@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check } from "lucide-react";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +37,8 @@ interface MediaNote extends BaseNote {
   date: string;
 }
 
-interface ChatMsg { role: "user" | "assistant"; content: string }
+interface ChatAttachment { name: string; type: string; dataUrl?: string; text?: string }
+interface ChatMsg { role: "user" | "assistant"; content: string; attachments?: ChatAttachment[] }
 
 interface AiNote extends BaseNote {
   type: "ai";
@@ -111,31 +112,33 @@ export function StickyNotes() {
 
 
   // Drag
-  const handleMouseDown = useCallback((e: React.MouseEvent, id: string) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
+    e.preventDefault();
     const el = (e.target as HTMLElement).closest("[data-note-id]") as HTMLElement;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     dragRef.current = { id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-    const onMove = (ev: MouseEvent) => {
+    const onMove = (ev: PointerEvent) => {
       const d = dragRef.current; if (!d) return;
       setNotes(prev => prev.map(n => n.id === d.id ? { ...n, x: ev.clientX - d.offsetX, y: ev.clientY - d.offsetY } : n));
     };
-    const onUp = () => { dragRef.current = null; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-    window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
+    const onUp = () => { dragRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
+    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
   }, []);
 
   // Resize
-  const handleResizeDown = useCallback((e: React.MouseEvent, n: AnyNote) => {
+  const handleResizeDown = useCallback((e: React.PointerEvent, n: AnyNote) => {
+    e.preventDefault();
     e.stopPropagation();
     resizeRef.current = { id: n.id, startX: e.clientX, startY: e.clientY, startW: n.width, startH: n.height };
-    const onMove = (ev: MouseEvent) => {
+    const onMove = (ev: PointerEvent) => {
       const r = resizeRef.current; if (!r) return;
       const w = Math.max(160, r.startW + (ev.clientX - r.startX));
       const h = Math.max(120, r.startH + (ev.clientY - r.startY));
       setNotes(prev => prev.map(nn => nn.id === r.id ? { ...nn, width: w, height: h } : nn));
     };
-    const onUp = () => { resizeRef.current = null; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-    window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
+    const onUp = () => { resizeRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
+    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
   }, []);
 
   const deleteNote = (id: string) => setNotes(prev => prev.filter(n => n.id !== id));
