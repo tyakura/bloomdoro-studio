@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check } from "lucide-react";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +37,8 @@ interface MediaNote extends BaseNote {
   date: string;
 }
 
-interface ChatMsg { role: "user" | "assistant"; content: string }
+interface ChatAttachment { name: string; type: string; dataUrl?: string; text?: string }
+interface ChatMsg { role: "user" | "assistant"; content: string; attachments?: ChatAttachment[] }
 
 interface AiNote extends BaseNote {
   type: "ai";
@@ -111,31 +112,33 @@ export function StickyNotes() {
 
 
   // Drag
-  const handleMouseDown = useCallback((e: React.MouseEvent, id: string) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
+    e.preventDefault();
     const el = (e.target as HTMLElement).closest("[data-note-id]") as HTMLElement;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     dragRef.current = { id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
-    const onMove = (ev: MouseEvent) => {
+    const onMove = (ev: PointerEvent) => {
       const d = dragRef.current; if (!d) return;
       setNotes(prev => prev.map(n => n.id === d.id ? { ...n, x: ev.clientX - d.offsetX, y: ev.clientY - d.offsetY } : n));
     };
-    const onUp = () => { dragRef.current = null; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-    window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
+    const onUp = () => { dragRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
+    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
   }, []);
 
   // Resize
-  const handleResizeDown = useCallback((e: React.MouseEvent, n: AnyNote) => {
+  const handleResizeDown = useCallback((e: React.PointerEvent, n: AnyNote) => {
+    e.preventDefault();
     e.stopPropagation();
     resizeRef.current = { id: n.id, startX: e.clientX, startY: e.clientY, startW: n.width, startH: n.height };
-    const onMove = (ev: MouseEvent) => {
+    const onMove = (ev: PointerEvent) => {
       const r = resizeRef.current; if (!r) return;
       const w = Math.max(160, r.startW + (ev.clientX - r.startX));
       const h = Math.max(120, r.startH + (ev.clientY - r.startY));
       setNotes(prev => prev.map(nn => nn.id === r.id ? { ...nn, width: w, height: h } : nn));
     };
-    const onUp = () => { resizeRef.current = null; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-    window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
+    const onUp = () => { resizeRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
+    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
   }, []);
 
   const deleteNote = (id: string) => setNotes(prev => prev.filter(n => n.id !== id));
@@ -181,7 +184,7 @@ export function StickyNotes() {
         <NoteCard
           key={note.id}
           note={note}
-          onMouseDown={handleMouseDown}
+          onPointerDown={handlePointerDown}
           onDelete={deleteNote}
           onResizeDown={handleResizeDown}
           onAiUpdate={updateAiMessages}
@@ -230,11 +233,11 @@ function FabItem({ icon: Icon, label, onClick, badge }: { icon: any; label: stri
 }
 
 // ============ Note Card renderer ============
-function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
+function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
   note: AnyNote;
-  onMouseDown: (e: React.MouseEvent, id: string) => void;
+  onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
-  onResizeDown: (e: React.MouseEvent, n: AnyNote) => void;
+  onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
   onAiUpdate: (id: string, msgs: ChatMsg[]) => void;
   onAiModeChange: (id: string, mode: ChatMode) => void;
 }) {
@@ -252,9 +255,9 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
     return (
       <div
         data-note-id={note.id}
-        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none ${cls}`}
+        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none touch-none ${cls}`}
         style={style}
-        onMouseDown={(e) => onMouseDown(e, note.id)}
+        onPointerDown={(e) => onPointerDown(e, note.id)}
       >
         <NoteHeader date={note.date} onDelete={() => onDelete(note.id)} />
         <h4 className="font-bold text-sm leading-tight mb-1">{note.title}</h4>
@@ -274,10 +277,10 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
         style={baseStyle}
       >
         <div
-          className="absolute top-0 left-0 right-0 h-7 z-10 cursor-grab active:cursor-grabbing bg-gradient-to-b from-black/40 to-transparent flex items-center justify-end px-2"
-          onMouseDown={(e) => onMouseDown(e, note.id)}
+          className="absolute top-0 left-0 right-0 h-7 z-10 cursor-grab active:cursor-grabbing touch-none bg-gradient-to-b from-black/40 to-transparent flex items-center justify-end px-2"
+          onPointerDown={(e) => onPointerDown(e, note.id)}
         >
-          <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="bg-background/80 hover:bg-background rounded-full p-1">
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="bg-background/80 hover:bg-background rounded-full p-1">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -300,7 +303,7 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
 
   // AI
   return (
-    <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
+    <AiChatNote note={note} onPointerDown={onPointerDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
   );
 }
 
@@ -309,18 +312,18 @@ function NoteHeader({ date, onDelete }: { date: string; onDelete: () => void }) 
     <div className="flex items-start justify-between mb-1">
       <GripVertical className="w-4 h-4 opacity-40 flex-shrink-0 mt-0.5" />
       <span className="text-[10px] opacity-60">{date}</span>
-      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="opacity-40 hover:opacity-100 transition-opacity flex-shrink-0">
+      <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }} className="opacity-40 hover:opacity-100 transition-opacity flex-shrink-0">
         <X className="w-3.5 h-3.5" />
       </button>
     </div>
   );
 }
 
-function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.MouseEvent) => void }) {
+function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.PointerEvent) => void }) {
   return (
     <div
-      onMouseDown={onMouseDown}
-      className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-20"
+      onPointerDown={onMouseDown}
+      className="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize z-20 touch-none"
       style={{ background: "linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.3) 50%)" }}
     />
   );
@@ -501,6 +504,43 @@ function CodeBlock({ lang, text }: { lang: string; text: string }) {
   );
 }
 
+function AttachmentPreview({ attachments }: { attachments?: ChatAttachment[] }) {
+  if (!attachments?.length) return null;
+  return (
+    <div className="mt-2 space-y-1.5">
+      {attachments.map((a, i) => (
+        <div key={`${a.name}-${i}`} className="rounded-lg border border-border bg-background/40 p-2 text-xs">
+          {a.type.startsWith("image/") && a.dataUrl ? (
+            <img src={a.dataUrl} alt={a.name} className="max-h-32 w-full rounded-md object-cover" />
+          ) : a.type.startsWith("audio/") && a.dataUrl ? (
+            <audio src={a.dataUrl} controls className="w-full" />
+          ) : (
+            <div className="flex items-center gap-2 break-all"><FileText className="h-3.5 w-3.5 flex-shrink-0" />{a.name}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+async function fileToAttachment(file: File): Promise<ChatAttachment> {
+  const base: ChatAttachment = { name: file.name, type: file.type || "application/octet-stream" };
+  if (file.type.startsWith("image/") || file.type.startsWith("audio/")) return { ...base, dataUrl: await toDataURL(file, 1200) };
+  if (file.type.startsWith("text/") || /\.(md|csv|json|txt|html|css|js|ts|tsx)$/i.test(file.name)) return { ...base, text: (await file.text()).slice(0, 12000) };
+  return base;
+}
+
+function exportChatToPdf(messages: ChatMsg[]) {
+  const escapeHtml = (value: string) => value.replace(/[&<>]/g, (c) => c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;");
+  const html = messages.map(m => `<section style="margin:0 0 16px"><b>${m.role === "user" ? "User" : "Bloomdoro AI"}</b><p style="white-space:pre-wrap">${escapeHtml(m.content)}</p></section>`).join("");
+  const win = window.open("", "_blank");
+  if (!win) return toast.error("Popup diblokir, izinkan popup untuk ekspor PDF.");
+  win.document.write(`<html><head><title>Bloomdoro AI Chat</title></head><body style="font-family:sans-serif;padding:32px;line-height:1.5"><h1>Bloomdoro AI Chat</h1>${html}</body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
+}
+
 // Parse "SOURCES:" footer into reference links
 function parseSources(content: string): { body: string; sources: { title: string; url: string }[] } {
   const idx = content.search(/\n?SOURCES:\s*\n/i);
@@ -522,18 +562,21 @@ function parseSources(content: string): { body: string; sources: { title: string
 }
 
 // ============ AI chat note ============
-function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
+function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
   note: AiNote;
-  onMouseDown: (e: React.MouseEvent, id: string) => void;
+  onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
-  onResizeDown: (e: React.MouseEvent, n: AnyNote) => void;
+  onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
   onUpdate: (id: string, msgs: ChatMsg[]) => void;
   onModeChange: (id: string, mode: ChatMode) => void;
 }) {
   const { lang, t } = useLang();
   const [input, setInput] = useState("");
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [attachOpen, setAttachOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSourcesFor, setShowSourcesFor] = useState<number | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const startedAt = useRef<number>(Date.now());
 
@@ -553,8 +596,15 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
     });
   }, [note.messages, note.sessionId]);
 
+  const handleFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const converted = await Promise.all(Array.from(files).slice(0, 4).map(fileToAttachment));
+    setAttachments(prev => [...prev, ...converted].slice(0, 6));
+    setAttachOpen(false);
+  };
+
   const send = async () => {
-    if (!input.trim() || loading) return;
+    if ((!input.trim() && attachments.length === 0) || loading) return;
     const text = input.trim();
 
     // Admin shortcut
@@ -570,11 +620,26 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
       return;
     }
 
-    const userMsg: ChatMsg = { role: "user", content: text };
+    const attachmentText = attachments.map(a => a.text ? `\n\n[File ${a.name}]\n${a.text}` : `\n\n[Lampiran: ${a.name} (${a.type})]`).join("");
+    const userMsg: ChatMsg = { role: "user", content: text || "Lampiran", attachments };
     const newMsgs = [...note.messages, userMsg];
     onUpdate(note.id, newMsgs);
     setInput("");
+    setAttachments([]);
     setLoading(true);
+
+    const apiMessages = newMsgs.map(m => {
+      const images = m.attachments?.filter(a => a.type.startsWith("image/") && a.dataUrl) || [];
+      const textContent = `${m.content}${m === userMsg ? attachmentText : ""}`;
+      if (images.length === 0) return { role: m.role, content: textContent };
+      return {
+        role: m.role,
+        content: [
+          { type: "text", text: textContent },
+          ...images.map(a => ({ type: "image_url", image_url: { url: a.dataUrl } })),
+        ],
+      };
+    });
 
     try {
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
@@ -583,7 +648,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: newMsgs, mode: note.mode, language: lang }),
+        body: JSON.stringify({ messages: apiMessages, mode: note.mode, language: lang }),
       });
 
       if (!resp.ok || !resp.body) {
@@ -646,14 +711,14 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
     >
       {/* Header (drag handle) */}
       <div
-        className="flex items-center justify-between px-3 py-2 bg-primary/10 border-b border-border cursor-grab active:cursor-grabbing"
-        onMouseDown={(e) => onMouseDown(e, note.id)}
+        className="flex items-center justify-between px-3 py-2 bg-primary/10 border-b border-border cursor-grab active:cursor-grabbing touch-none"
+        onPointerDown={(e) => onPointerDown(e, note.id)}
       >
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
           <span className="font-display font-bold text-sm text-foreground">Bloomdoro AI</span>
         </div>
-        <button onClick={() => onDelete(note.id)} className="opacity-60 hover:opacity-100">
+        <button onPointerDown={(e) => e.stopPropagation()} onClick={() => onDelete(note.id)} className="opacity-60 hover:opacity-100">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -671,6 +736,7 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
                   : "bg-secondary text-secondary-foreground rounded-bl-sm"
               }`}>
                 {body ? <MessageContent content={body} /> : (loading ? <span className="opacity-60">…</span> : null)}
+                <AttachmentPreview attachments={m.attachments} />
                 {!isUser && sources.length > 0 && (
                   <div className="mt-2">
                     <button
@@ -715,7 +781,37 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
       </div>
 
       {/* Input */}
-      <div className="p-2 flex gap-2 bg-background/50">
+      <div className="p-2 bg-background/50">
+        {attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {attachments.map((a, i) => (
+              <button
+                key={`${a.name}-${i}`}
+                onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-[11px] text-secondary-foreground hover:bg-muted"
+              >
+                <Paperclip className="h-3 w-3" /> {a.name.slice(0, 18)} <X className="h-3 w-3" />
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+        <div className="relative">
+          <input ref={fileRef} type="file" multiple accept="image/*,audio/*,.pdf,.txt,.md,.csv,.json,.js,.ts,.tsx,.html,.css" onChange={(e) => handleFiles(e.target.files)} className="hidden" />
+          {attachOpen && (
+            <div className="absolute bottom-12 left-0 z-10 w-44 rounded-lg border border-border bg-card p-1 shadow-lg">
+              <button onClick={() => fileRef.current?.click()} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
+                <Paperclip className="h-3.5 w-3.5" /> File / gambar / audio
+              </button>
+              <button onClick={() => exportChatToPdf(note.messages)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
+                <FileText className="h-3.5 w-3.5" /> Export PDF
+              </button>
+            </div>
+          )}
+          <Button size="icon" variant="outline" onClick={() => setAttachOpen(o => !o)} disabled={loading}>
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -725,9 +821,10 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
           rows={1}
           className="text-sm min-h-[40px] max-h-[120px] resize-none"
         />
-        <Button size="icon" onClick={send} disabled={loading || !input.trim()}>
+        <Button size="icon" onClick={send} disabled={loading || (!input.trim() && attachments.length === 0)}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </Button>
+        </div>
       </div>
 
       <ResizeHandle onMouseDown={(e) => onResizeDown(e, note)} />

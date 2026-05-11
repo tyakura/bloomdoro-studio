@@ -41,6 +41,7 @@ const Index = () => {
   const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
+  const completionHandledRef = useRef(false);
   const isMobile = useIsMobile();
   const timer = useTimer(customMinutes);
 
@@ -65,9 +66,8 @@ const Index = () => {
     setRepeatElapsed(0);
     setTheme(selectedTheme);
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
-    timer.reset(minutes);
     setPhase("focus");
-    setTimeout(() => timer.start(), 50);
+    setTimeout(() => timer.start(minutes), 50);
   }, [timer]);
 
   const handleReset = useCallback(() => {
@@ -94,41 +94,40 @@ const Index = () => {
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     setCycleCount(0);
     setRepeatElapsed(0);
-    timer.reset(customMinutes);
     setPhase("focus");
-    setTimeout(() => timer.start(), 50);
+    setTimeout(() => timer.start(customMinutes), 50);
   }, [timer, customMinutes]);
 
-  if (timer.status === "complete" && (phase === "focus" || phase === "break")) {
+  useEffect(() => {
+    if (timer.status !== "complete") {
+      completionHandledRef.current = false;
+      return;
+    }
+    if (completionHandledRef.current || (phase !== "focus" && phase !== "break")) return;
+    completionHandledRef.current = true;
     musicStopRef.current?.();
     if (phase === "focus") {
-      const newCycleCount = cycleCount + 1;
-      setCycleCount(newCycleCount);
+      setCycleCount((c) => c + 1);
       setSessions((s) => s + 1);
       if (theme === "flower") setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
       if (breakMinutes > 0) {
-        timer.reset(breakMinutes);
         setPhase("break");
-        setTimeout(() => timer.start(), 50);
+        setTimeout(() => timer.start(breakMinutes), 50);
       } else if (repeatMode) {
         setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
-        timer.reset(customMinutes);
         setPhase("focus");
-        setTimeout(() => timer.start(), 50);
+        setTimeout(() => timer.start(customMinutes), 50);
       } else {
         setPhase("complete");
       }
-    } else if (phase === "break") {
-      if (repeatMode) {
-        setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
-        timer.reset(customMinutes);
-        setPhase("focus");
-        setTimeout(() => timer.start(), 50);
-      } else {
-        setPhase("complete");
-      }
+    } else if (repeatMode) {
+      setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
+      setPhase("focus");
+      setTimeout(() => timer.start(customMinutes), 50);
+    } else {
+      setPhase("complete");
     }
-  }
+  }, [timer.status, timer.start, phase, breakMinutes, repeatMode, customMinutes, theme, currentFlowerVariant]);
 
   const pad = (n: number) => n.toString().padStart(2, "0");
 
@@ -188,7 +187,7 @@ const Index = () => {
             onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
             showGarden={isMobile}
             onGardenOpen={() => setGardenOpen(true)}
-            onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind }))}
+            onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
             bgImage={bg.url}
             bgKind={bg.kind}
             overlayOpacity={bg.overlay}
@@ -213,10 +212,16 @@ const Index = () => {
 
       <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
         {phase === "setup" ? (
-          <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bg.url} glassOpacity={bg.glass} />
+          <div className="flex flex-col items-center gap-5">
+            <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bg.url} glassOpacity={bg.glass} />
+            <p className="text-center text-xs text-muted-foreground/80">
+              copyright©all rights reserved by attayaarkarna12@gmail.com
+            </p>
+          </div>
         ) : phase === "complete" ? (
           <CompletionScreen lastMinutes={customMinutes} onReuse={handleReuse} onChangeTime={() => setPhase("setup")} cycleCount={cycleCount} />
         ) : (
+          <div className="flex flex-col items-center gap-5">
           <div className={`flex ${isMobile ? 'flex-col items-center gap-8' : 'flex-row items-center justify-center'}`} style={!isMobile ? { gap: '120px' } : undefined}>
             {isMobile && (
               <div className="flex-shrink-0 my-6">
@@ -303,6 +308,10 @@ const Index = () => {
                 )}
               </div>
             )}
+          </div>
+            <p className="text-center text-xs text-muted-foreground/80">
+              copyright©all rights reserved by attayaarkarna12@gmail.com
+            </p>
           </div>
         )}
       </main>
