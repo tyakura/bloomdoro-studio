@@ -213,10 +213,16 @@ const Index = () => {
 
       <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
         {phase === "setup" ? (
-          <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bg.url} glassOpacity={bg.glass} />
+          <div className="flex flex-col items-center gap-5">
+            <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bg.url} glassOpacity={bg.glass} />
+            <p className="text-center text-xs text-muted-foreground/80">
+              copyright©all rights reserved by attayaarkarna12@gmail.com
+            </p>
+          </div>
         ) : phase === "complete" ? (
           <CompletionScreen lastMinutes={customMinutes} onReuse={handleReuse} onChangeTime={() => setPhase("setup")} cycleCount={cycleCount} />
         ) : (
+          <div className="flex flex-col items-center gap-5">
           <div className={`flex ${isMobile ? 'flex-col items-center gap-8' : 'flex-row items-center justify-center'}`} style={!isMobile ? { gap: '120px' } : undefined}>
             {isMobile && (
               <div className="flex-shrink-0 my-6">
@@ -303,6 +309,10 @@ const Index = () => {
                 )}
               </div>
             )}
+          </div>
+            <p className="text-center text-xs text-muted-foreground/80">
+              copyright©all rights reserved by attayaarkarna12@gmail.com
+            </p>
           </div>
         )}
       </main>
