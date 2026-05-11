@@ -312,7 +312,7 @@ function NoteHeader({ date, onDelete }: { date: string; onDelete: () => void }) 
     <div className="flex items-start justify-between mb-1">
       <GripVertical className="w-4 h-4 opacity-40 flex-shrink-0 mt-0.5" />
       <span className="text-[10px] opacity-60">{date}</span>
-      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="opacity-40 hover:opacity-100 transition-opacity flex-shrink-0">
+      <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }} className="opacity-40 hover:opacity-100 transition-opacity flex-shrink-0">
         <X className="w-3.5 h-3.5" />
       </button>
     </div>
@@ -525,11 +525,11 @@ function parseSources(content: string): { body: string; sources: { title: string
 }
 
 // ============ AI chat note ============
-function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
+function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
   note: AiNote;
-  onMouseDown: (e: React.MouseEvent, id: string) => void;
+  onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
-  onResizeDown: (e: React.MouseEvent, n: AnyNote) => void;
+  onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
   onUpdate: (id: string, msgs: ChatMsg[]) => void;
   onModeChange: (id: string, mode: ChatMode) => void;
 }) {
@@ -649,14 +649,14 @@ function AiChatNote({ note, onMouseDown, onDelete, onResizeDown, onUpdate, onMod
     >
       {/* Header (drag handle) */}
       <div
-        className="flex items-center justify-between px-3 py-2 bg-primary/10 border-b border-border cursor-grab active:cursor-grabbing"
-        onMouseDown={(e) => onMouseDown(e, note.id)}
+        className="flex items-center justify-between px-3 py-2 bg-primary/10 border-b border-border cursor-grab active:cursor-grabbing touch-none"
+        onPointerDown={(e) => onPointerDown(e, note.id)}
       >
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
           <span className="font-display font-bold text-sm text-foreground">Bloomdoro AI</span>
         </div>
-        <button onClick={() => onDelete(note.id)} className="opacity-60 hover:opacity-100">
+        <button onPointerDown={(e) => e.stopPropagation()} onClick={() => onDelete(note.id)} className="opacity-60 hover:opacity-100">
           <X className="w-4 h-4" />
         </button>
       </div>
