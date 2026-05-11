@@ -65,9 +65,8 @@ const Index = () => {
     setRepeatElapsed(0);
     setTheme(selectedTheme);
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
-    timer.reset(minutes);
     setPhase("focus");
-    setTimeout(() => timer.start(), 50);
+    setTimeout(() => timer.start(minutes), 50);
   }, [timer]);
 
   const handleReset = useCallback(() => {
@@ -94,9 +93,8 @@ const Index = () => {
     setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
     setCycleCount(0);
     setRepeatElapsed(0);
-    timer.reset(customMinutes);
     setPhase("focus");
-    setTimeout(() => timer.start(), 50);
+    setTimeout(() => timer.start(customMinutes), 50);
   }, [timer, customMinutes]);
 
   if (timer.status === "complete" && (phase === "focus" || phase === "break")) {
@@ -107,23 +105,20 @@ const Index = () => {
       setSessions((s) => s + 1);
       if (theme === "flower") setGardenFlowers((prev) => [...prev.slice(0, 19), currentFlowerVariant]);
       if (breakMinutes > 0) {
-        timer.reset(breakMinutes);
         setPhase("break");
-        setTimeout(() => timer.start(), 50);
+        setTimeout(() => timer.start(breakMinutes), 50);
       } else if (repeatMode) {
         setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
-        timer.reset(customMinutes);
         setPhase("focus");
-        setTimeout(() => timer.start(), 50);
+        setTimeout(() => timer.start(customMinutes), 50);
       } else {
         setPhase("complete");
       }
     } else if (phase === "break") {
       if (repeatMode) {
         setCurrentFlowerVariant((Math.floor(Math.random() * 4)) as FlowerVariant);
-        timer.reset(customMinutes);
         setPhase("focus");
-        setTimeout(() => timer.start(), 50);
+        setTimeout(() => timer.start(customMinutes), 50);
       } else {
         setPhase("complete");
       }
