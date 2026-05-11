@@ -184,7 +184,7 @@ export function StickyNotes() {
         <NoteCard
           key={note.id}
           note={note}
-          onMouseDown={handleMouseDown}
+          onPointerDown={handlePointerDown}
           onDelete={deleteNote}
           onResizeDown={handleResizeDown}
           onAiUpdate={updateAiMessages}
@@ -233,11 +233,11 @@ function FabItem({ icon: Icon, label, onClick, badge }: { icon: any; label: stri
 }
 
 // ============ Note Card renderer ============
-function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
+function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
   note: AnyNote;
-  onMouseDown: (e: React.MouseEvent, id: string) => void;
+  onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
-  onResizeDown: (e: React.MouseEvent, n: AnyNote) => void;
+  onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
   onAiUpdate: (id: string, msgs: ChatMsg[]) => void;
   onAiModeChange: (id: string, mode: ChatMode) => void;
 }) {
@@ -255,9 +255,9 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
     return (
       <div
         data-note-id={note.id}
-        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none ${cls}`}
+        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none touch-none ${cls}`}
         style={style}
-        onMouseDown={(e) => onMouseDown(e, note.id)}
+        onPointerDown={(e) => onPointerDown(e, note.id)}
       >
         <NoteHeader date={note.date} onDelete={() => onDelete(note.id)} />
         <h4 className="font-bold text-sm leading-tight mb-1">{note.title}</h4>
@@ -278,7 +278,7 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
       >
         <div
           className="absolute top-0 left-0 right-0 h-7 z-10 cursor-grab active:cursor-grabbing bg-gradient-to-b from-black/40 to-transparent flex items-center justify-end px-2"
-          onMouseDown={(e) => onMouseDown(e, note.id)}
+          onPointerDown={(e) => onPointerDown(e, note.id)}
         >
           <button onClick={(e) => { e.stopPropagation(); onDelete(note.id); }} className="bg-background/80 hover:bg-background rounded-full p-1">
             <X className="w-3.5 h-3.5" />
@@ -303,7 +303,7 @@ function NoteCard({ note, onMouseDown, onDelete, onResizeDown, onAiUpdate, onAiM
 
   // AI
   return (
-    <AiChatNote note={note} onMouseDown={onMouseDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
+    <AiChatNote note={note} onPointerDown={onPointerDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
   );
 }
 
@@ -319,11 +319,11 @@ function NoteHeader({ date, onDelete }: { date: string; onDelete: () => void }) 
   );
 }
 
-function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.MouseEvent) => void }) {
+function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.PointerEvent) => void }) {
   return (
     <div
-      onMouseDown={onMouseDown}
-      className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-20"
+      onPointerDown={onMouseDown}
+      className="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize z-20 touch-none"
       style={{ background: "linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.3) 50%)" }}
     />
   );
