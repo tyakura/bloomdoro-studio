@@ -14,7 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      garden_progress: {
+        Row: {
+          flowers: Json | null
+          sessions: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          flowers?: Json | null
+          sessions?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          flowers?: Json | null
+          sessions?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          ambient: string | null
+          background_glass: number | null
+          background_kind: string | null
+          background_muted: boolean | null
+          background_overlay: number | null
+          background_url: string | null
+          language: string | null
+          music_name: string | null
+          music_url: string | null
+          updated_at: string
+          user_id: string
+          volume: number | null
+        }
+        Insert: {
+          ambient?: string | null
+          background_glass?: number | null
+          background_kind?: string | null
+          background_muted?: boolean | null
+          background_overlay?: number | null
+          background_url?: string | null
+          language?: string | null
+          music_name?: string | null
+          music_url?: string | null
+          updated_at?: string
+          user_id: string
+          volume?: number | null
+        }
+        Update: {
+          ambient?: string | null
+          background_glass?: number | null
+          background_kind?: string | null
+          background_muted?: boolean | null
+          background_overlay?: number | null
+          background_url?: string | null
+          language?: string | null
+          music_name?: string | null
+          music_url?: string | null
+          updated_at?: string
+          user_id?: string
+          volume?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
