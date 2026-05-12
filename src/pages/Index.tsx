@@ -15,6 +15,8 @@ import { HelpGuide } from "@/components/HelpGuide";
 import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileAIChat } from "@/components/MobileAIChat";
+import { Sparkles } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
 import { AuthBanner } from "@/components/AuthBanner";
