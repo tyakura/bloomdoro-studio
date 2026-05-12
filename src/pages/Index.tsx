@@ -17,6 +17,11 @@ import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
+import { AuthBanner } from "@/components/AuthBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+import { Lock } from "lucide-react";
+import { toast } from "sonner";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
 
