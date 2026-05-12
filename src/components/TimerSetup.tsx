@@ -20,17 +20,9 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
   const [showBreak, setShowBreak] = useState(false);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [repeat, setRepeat] = useState(false);
-  const [adminMode, setAdminMode] = useState<boolean>(() => !!(window as any).__bloomdoroAdmin);
-  useEffect(() => {
-    const handler = () => setAdminMode(true);
-    window.addEventListener("bloomdoro:admin-on", handler);
-    return () => window.removeEventListener("bloomdoro:admin-on", handler);
-  }, []);
-  const minMinutes = adminMode ? 1 / 60 : 1; // 1 second when admin
+  const dec = () => setMinutes(m => Math.max(1, m - 5));
+  const inc = () => setMinutes(m => Math.min(120, m + 5));
 
-  // In admin mode allow integer 0 (interpreted as 1s) using small decrement
-  const dec = () => setMinutes(m => Math.max(minMinutes, +(m - (adminMode ? 0.5 : 5)).toFixed(2)));
-  const inc = () => setMinutes(m => Math.min(120, +(m + (adminMode ? 0.5 : 5)).toFixed(2)));
 
 
   return (
