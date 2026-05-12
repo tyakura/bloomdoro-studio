@@ -31,6 +31,7 @@ const BG_KEY = "bloomdoro_bg";
 
 const Index = () => {
   const { t } = useLang();
+  const { user } = useAuth();
   const [phase, setPhase] = useState<SessionPhase>("setup");
   const [sessions, setSessions] = useState(() => loadJSON("bloomdoro_sessions", 0));
   const [customMinutes, setCustomMinutes] = useState(25);
