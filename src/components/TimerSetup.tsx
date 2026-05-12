@@ -81,7 +81,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <Minus className="w-5 h-5" />
           </button>
           <div className="font-display text-7xl font-bold tabular-nums text-foreground min-w-[120px] text-center">
-            {adminMode && minutes < 1 ? "1s" : minutes}
+            {minutes}
           </div>
           <button
             onClick={inc}
@@ -90,7 +90,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <Plus className="w-5 h-5" />
           </button>
         </div>
-        <span className="text-muted-foreground text-sm -mt-4">{adminMode && minutes < 1 ? "second" : "minutes"}</span>
+        <span className="text-muted-foreground text-sm -mt-4">minutes</span>
 
         <div className="flex gap-2 flex-wrap justify-center">
           {PRESETS.map((p) => (
