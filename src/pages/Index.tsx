@@ -48,6 +48,7 @@ const Index = () => {
   const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
   const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [mobileAIOpen, setMobileAIOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
   const completionHandledRef = useRef(false);
   const isMobile = useIsMobile();
