@@ -327,6 +327,28 @@ const Index = () => {
         )}
       </main>
 
+      {/* Mobile floating AI button */}
+      {isMobile && !mobileAIOpen && (
+        <button
+          onClick={() => setMobileAIOpen(true)}
+          className="fixed bottom-20 right-4 z-[150] w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+          aria-label="Talk with AI"
+        >
+          <Sparkles className="w-6 h-6" />
+        </button>
+      )}
+      {mobileAIOpen && (
+        <MobileAIChat
+          onBack={() => setMobileAIOpen(false)}
+          timerProgress={timer.progress}
+          timerMinutes={timer.minutes}
+          timerSeconds={timer.seconds}
+          theme={theme}
+          flowerVariant={currentFlowerVariant}
+          isFocusing={phase === "focus"}
+        />
+      )}
+
       <Garden gardenFlowers={gardenFlowers} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
       <ChatHistory isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
       <StickyNotes />
