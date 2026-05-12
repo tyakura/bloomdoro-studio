@@ -15,8 +15,15 @@ import { HelpGuide } from "@/components/HelpGuide";
 import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileAIChat } from "@/components/MobileAIChat";
+import { Sparkles } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
+import { AuthBanner } from "@/components/AuthBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+import { Lock } from "lucide-react";
+import { toast } from "sonner";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
 
@@ -26,6 +33,7 @@ const BG_KEY = "bloomdoro_bg";
 
 const Index = () => {
   const { t } = useLang();
+  const { user } = useAuth();
   const [phase, setPhase] = useState<SessionPhase>("setup");
   const [sessions, setSessions] = useState(() => loadJSON("bloomdoro_sessions", 0));
   const [customMinutes, setCustomMinutes] = useState(25);
@@ -40,6 +48,7 @@ const Index = () => {
   const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
   const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [mobileAIOpen, setMobileAIOpen] = useState(false);
   const musicStopRef = useRef<(() => void) | null>(null);
   const completionHandledRef = useRef(false);
   const isMobile = useIsMobile();
@@ -175,14 +184,16 @@ const Index = () => {
                 {t("garden")}
               </button>
               <button
-                onClick={() => setHistoryOpen(true)}
+                onClick={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
+                title={user ? "" : "Perlu login"}
               >
-                <History className="w-4 h-4" />
+                {user ? <History className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />}
                 {t("ai_history")}
               </button>
             </>
           )}
+          <AuthBanner />
           <SettingsModal
             onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
             showGarden={isMobile}
@@ -315,6 +326,28 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* Mobile floating AI button */}
+      {isMobile && !mobileAIOpen && (
+        <button
+          onClick={() => setMobileAIOpen(true)}
+          className="fixed bottom-20 right-4 z-[150] w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+          aria-label="Talk with AI"
+        >
+          <Sparkles className="w-6 h-6" />
+        </button>
+      )}
+      {mobileAIOpen && (
+        <MobileAIChat
+          onBack={() => setMobileAIOpen(false)}
+          timerProgress={timer.progress}
+          timerMinutes={timer.minutes}
+          timerSeconds={timer.seconds}
+          theme={theme}
+          flowerVariant={currentFlowerVariant}
+          isFocusing={phase === "focus"}
+        />
+      )}
 
       <Garden gardenFlowers={gardenFlowers} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
       <ChatHistory isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />

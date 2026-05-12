@@ -607,18 +607,7 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
     if ((!input.trim() && attachments.length === 0) || loading) return;
     const text = input.trim();
 
-    // Admin shortcut
-    if (text === "admin120201251") {
-      (window as any).__bloomdoroAdmin = true;
-      window.dispatchEvent(new CustomEvent("bloomdoro:admin-on"));
-      const newMsgs = [...note.messages,
-        { role: "user" as const, content: text },
-        { role: "assistant" as const, content: "✅ Mode admin aktif sampai refresh. Timer minimal 1 detik." },
-      ];
-      onUpdate(note.id, newMsgs);
-      setInput("");
-      return;
-    }
+
 
     const attachmentText = attachments.map(a => a.text ? `\n\n[File ${a.name}]\n${a.text}` : `\n\n[Lampiran: ${a.name} (${a.type})]`).join("");
     const userMsg: ChatMsg = { role: "user", content: text || "Lampiran", attachments };

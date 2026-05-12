@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -20,17 +20,9 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
   const [showBreak, setShowBreak] = useState(false);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [repeat, setRepeat] = useState(false);
-  const [adminMode, setAdminMode] = useState<boolean>(() => !!(window as any).__bloomdoroAdmin);
-  useEffect(() => {
-    const handler = () => setAdminMode(true);
-    window.addEventListener("bloomdoro:admin-on", handler);
-    return () => window.removeEventListener("bloomdoro:admin-on", handler);
-  }, []);
-  const minMinutes = adminMode ? 1 / 60 : 1; // 1 second when admin
+  const dec = () => setMinutes(m => Math.max(1, m - 5));
+  const inc = () => setMinutes(m => Math.min(120, m + 5));
 
-  // In admin mode allow integer 0 (interpreted as 1s) using small decrement
-  const dec = () => setMinutes(m => Math.max(minMinutes, +(m - (adminMode ? 0.5 : 5)).toFixed(2)));
-  const inc = () => setMinutes(m => Math.min(120, +(m + (adminMode ? 0.5 : 5)).toFixed(2)));
 
 
   return (
@@ -89,7 +81,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <Minus className="w-5 h-5" />
           </button>
           <div className="font-display text-7xl font-bold tabular-nums text-foreground min-w-[120px] text-center">
-            {adminMode && minutes < 1 ? "1s" : minutes}
+            {minutes}
           </div>
           <button
             onClick={inc}
@@ -98,7 +90,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <Plus className="w-5 h-5" />
           </button>
         </div>
-        <span className="text-muted-foreground text-sm -mt-4">{adminMode && minutes < 1 ? "second" : "minutes"}</span>
+        <span className="text-muted-foreground text-sm -mt-4">minutes</span>
 
         <div className="flex gap-2 flex-wrap justify-center">
           {PRESETS.map((p) => (

@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Settings, X, Upload, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff, Languages } from "lucide-react";
+import { Settings, X, Upload, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff, Languages, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useLang, LANGUAGES, Lang } from "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 const AMBIENT_SOUNDS = [
   { id: "rain", label: "Rain", icon: CloudRain, url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
@@ -76,8 +78,20 @@ function DarkModeToggle() {
   );
 }
 
+function LoginGate({ label }: { label: string }) {
+  return (
+    <div className="rounded-lg bg-muted/40 border border-dashed border-border p-3 text-center space-y-2">
+      <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+        <Lock className="w-3 h-3" /> {label} tersedia setelah login
+      </div>
+      <Link to="/auth" className="inline-block text-xs px-3 py-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">Masuk</Link>
+    </div>
+  );
+}
+
 export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, onBgChange, bgImage, bgKind = "image", overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange, bgVideoMuted = true, onBgVideoMutedChange }: SettingsModalProps) {
   const { t, lang, setLang } = useLang();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [bgUrl, setBgUrl] = useState("");
@@ -218,31 +232,37 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("ambient_sounds")}</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {AMBIENT_SOUNDS.map((sound) => {
-                const Icon = sound.icon;
-                return (
+            {!user ? (
+              <LoginGate label={t("ambient_sounds")} />
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  {AMBIENT_SOUNDS.map((sound) => {
+                    const Icon = sound.icon;
+                    return (
+                      <button
+                        key={sound.id}
+                        onClick={() => toggleSound(sound.id)}
+                        className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
+                          activeSound === sound.id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted text-foreground"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {sound.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeSound && (
                   <button
-                    key={sound.id}
-                    onClick={() => toggleSound(sound.id)}
-                    className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
-                      activeSound === sound.id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted text-foreground"
-                    }`}
+                    onClick={stopAmbient}
+                    className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Icon className="w-4 h-4" />
-                    {sound.label}
+                    <VolumeOff className="w-4 h-4" />
+                    {t("turn_off")}
                   </button>
-                );
-              })}
-            </div>
-            {activeSound && (
-              <button
-                onClick={stopAmbient}
-                className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
-              >
-                <VolumeOff className="w-4 h-4" />
-                {t("turn_off")}
-              </button>
+                )}
+              </>
             )}
           </div>
 
@@ -262,6 +282,7 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
               <Image className="w-4 h-4" />
               {t("background")}
             </h3>
+            {!user ? <LoginGate label={t("background")} /> : (
             <div className="space-y-2">
               <input ref={bgFileInputRef} type="file" accept="image/*,video/*" onChange={handleBgFileUpload} className="hidden" />
               <Button onClick={() => bgFileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
@@ -299,23 +320,30 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
                 </div>
               )}
             </div>
+            )}
           </div>
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("upload_music")}</h3>
-            <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" />
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
-              <Upload className="w-4 h-4" />
-              {t("choose_audio")}
-            </Button>
+            {!user ? <LoginGate label={t("upload_music")} /> : (
+              <>
+                <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" />
+                <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
+                  <Upload className="w-4 h-4" />
+                  {t("choose_audio")}
+                </Button>
+              </>
+            )}
           </div>
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("youtube_link")}</h3>
-            <div className="flex gap-2">
-              <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder={t("paste_youtube")} className="flex-1" />
-              <Button onClick={handleYoutubeSubmit} variant="outline" className="px-4">{t("go")}</Button>
-            </div>
+            {!user ? <LoginGate label={t("youtube_link")} /> : (
+              <div className="flex gap-2">
+                <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder={t("paste_youtube")} className="flex-1" />
+                <Button onClick={handleYoutubeSubmit} variant="outline" className="px-4">{t("go")}</Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
