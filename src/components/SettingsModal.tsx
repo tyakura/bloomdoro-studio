@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Settings, X, Upload, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff, Languages } from "lucide-react";
+import { Settings, X, Upload, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff, Languages, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useLang, LANGUAGES, Lang } from "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 const AMBIENT_SOUNDS = [
   { id: "rain", label: "Rain", icon: CloudRain, url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
