@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
