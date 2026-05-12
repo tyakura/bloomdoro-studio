@@ -181,14 +181,16 @@ const Index = () => {
                 {t("garden")}
               </button>
               <button
-                onClick={() => setHistoryOpen(true)}
+                onClick={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
+                title={user ? "" : "Perlu login"}
               >
-                <History className="w-4 h-4" />
+                {user ? <History className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />}
                 {t("ai_history")}
               </button>
             </>
           )}
+          <AuthBanner />
           <SettingsModal
             onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
             showGarden={isMobile}
