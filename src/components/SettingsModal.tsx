@@ -282,6 +282,7 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
               <Image className="w-4 h-4" />
               {t("background")}
             </h3>
+            {!user ? <LoginGate label={t("background")} /> : (
             <div className="space-y-2">
               <input ref={bgFileInputRef} type="file" accept="image/*,video/*" onChange={handleBgFileUpload} className="hidden" />
               <Button onClick={() => bgFileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
@@ -319,6 +320,7 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
                 </div>
               )}
             </div>
+            )}
           </div>
 
           <div>
