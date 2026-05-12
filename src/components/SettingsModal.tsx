@@ -221,31 +221,37 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("ambient_sounds")}</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {AMBIENT_SOUNDS.map((sound) => {
-                const Icon = sound.icon;
-                return (
+            {!user ? (
+              <LoginGate label={t("ambient_sounds")} />
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  {AMBIENT_SOUNDS.map((sound) => {
+                    const Icon = sound.icon;
+                    return (
+                      <button
+                        key={sound.id}
+                        onClick={() => toggleSound(sound.id)}
+                        className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
+                          activeSound === sound.id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted text-foreground"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {sound.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeSound && (
                   <button
-                    key={sound.id}
-                    onClick={() => toggleSound(sound.id)}
-                    className={`px-3 py-2.5 rounded-lg text-sm text-left transition-colors flex items-center gap-2 ${
-                      activeSound === sound.id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted text-foreground"
-                    }`}
+                    onClick={stopAmbient}
+                    className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Icon className="w-4 h-4" />
-                    {sound.label}
+                    <VolumeOff className="w-4 h-4" />
+                    {t("turn_off")}
                   </button>
-                );
-              })}
-            </div>
-            {activeSound && (
-              <button
-                onClick={stopAmbient}
-                className="mt-2 w-full px-3 py-2 rounded-lg text-sm text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
-              >
-                <VolumeOff className="w-4 h-4" />
-                {t("turn_off")}
-              </button>
+                )}
+              </>
             )}
           </div>
 
