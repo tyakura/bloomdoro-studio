@@ -25,18 +25,11 @@ async function geminiVisionOCR(dataUrl: string, apiKey: string): Promise<string>
 }
 
 async function extractPdfText(bytes: Uint8Array): Promise<string> {
-  // Lightweight: stream extraction via pdfjs-dist legacy build (deno-compatible)
   try {
-    const pdfjs: any = await import("https://esm.sh/pdfjs-dist@4.0.379/legacy/build/pdf.mjs");
-    const loadingTask = pdfjs.getDocument({ data: bytes, useWorker: false, isEvalSupported: false });
-    const pdf = await loadingTask.promise;
-    let text = "";
-    for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map((it: any) => it.str).join(" ") + "\n\n";
-    }
-    return text.trim();
+    const { extractText, getDocumentProxy } = await import("https://esm.sh/unpdf@0.12.1");
+    const pdf = await getDocumentProxy(bytes);
+    const { text } = await extractText(pdf, { mergePages: true });
+    return (text as string).trim();
   } catch (e) {
     return `[PDF extraction failed: ${e instanceof Error ? e.message : String(e)}]`;
   }
