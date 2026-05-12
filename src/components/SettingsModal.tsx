@@ -325,19 +325,25 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("upload_music")}</h3>
-            <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" />
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
-              <Upload className="w-4 h-4" />
-              {t("choose_audio")}
-            </Button>
+            {!user ? <LoginGate label={t("upload_music")} /> : (
+              <>
+                <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" />
+                <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
+                  <Upload className="w-4 h-4" />
+                  {t("choose_audio")}
+                </Button>
+              </>
+            )}
           </div>
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("youtube_link")}</h3>
-            <div className="flex gap-2">
-              <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder={t("paste_youtube")} className="flex-1" />
-              <Button onClick={handleYoutubeSubmit} variant="outline" className="px-4">{t("go")}</Button>
-            </div>
+            {!user ? <LoginGate label={t("youtube_link")} /> : (
+              <div className="flex gap-2">
+                <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder={t("paste_youtube")} className="flex-1" />
+                <Button onClick={handleYoutubeSubmit} variant="outline" className="px-4">{t("go")}</Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
