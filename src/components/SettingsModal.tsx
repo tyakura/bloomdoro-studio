@@ -78,6 +78,17 @@ function DarkModeToggle() {
   );
 }
 
+function LoginGate({ label }: { label: string }) {
+  return (
+    <div className="rounded-lg bg-muted/40 border border-dashed border-border p-3 text-center space-y-2">
+      <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+        <Lock className="w-3 h-3" /> {label} tersedia setelah login
+      </div>
+      <Link to="/auth" className="inline-block text-xs px-3 py-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">Masuk</Link>
+    </div>
+  );
+}
+
 export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, onBgChange, bgImage, bgKind = "image", overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange, bgVideoMuted = true, onBgVideoMutedChange }: SettingsModalProps) {
   const { t, lang, setLang } = useLang();
   const { user } = useAuth();
