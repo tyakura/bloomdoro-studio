@@ -16,10 +16,10 @@ import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileAIChat } from "@/components/MobileAIChat";
-import { Sparkles } from "lucide-react";
+
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
-import { AuthBanner } from "@/components/AuthBanner";
+import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
@@ -174,40 +174,34 @@ const Index = () => {
         <BloomdoroLogo />
         <div className="flex items-center gap-2 sm:gap-3">
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
-          {!isMobile && (
-            <>
-              <button
-                onClick={() => setGardenOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-              >
-                <Flower2 className="w-4 h-4" />
-                {t("garden")}
-              </button>
-              <button
-                onClick={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-                title={user ? "" : "Perlu login"}
-              >
-                {user ? <History className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />}
-                {t("ai_history")}
-              </button>
-            </>
-          )}
-          <AuthBanner />
-          <SettingsModal
-            onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
-            showGarden={isMobile}
-            onGardenOpen={() => setGardenOpen(true)}
-            onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
-            bgImage={bg.url}
-            bgKind={bg.kind}
-            overlayOpacity={bg.overlay}
-            onOverlayChange={(v) => setBg(b => ({ ...b, overlay: v }))}
-            glassOpacity={bg.glass}
-            onGlassChange={(v) => setBg(b => ({ ...b, glass: v }))}
-            bgVideoMuted={bg.muted}
-            onBgVideoMutedChange={(v) => setBg(b => ({ ...b, muted: v }))}
-          />
+          <UserMenu>
+            <button
+              onClick={() => setGardenOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-sm"
+            >
+              <Flower2 className="w-4 h-4" /> {t("garden")}
+            </button>
+            <button
+              onClick={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
+              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-sm"
+            >
+              {user ? <History className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />} {t("ai_history")}
+            </button>
+            <SettingsModal
+              onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
+              showGarden={isMobile}
+              onGardenOpen={() => setGardenOpen(true)}
+              onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
+              bgImage={bg.url}
+              bgKind={bg.kind}
+              overlayOpacity={bg.overlay}
+              onOverlayChange={(v) => setBg(b => ({ ...b, overlay: v }))}
+              glassOpacity={bg.glass}
+              onGlassChange={(v) => setBg(b => ({ ...b, glass: v }))}
+              bgVideoMuted={bg.muted}
+              onBgVideoMutedChange={(v) => setBg(b => ({ ...b, muted: v }))}
+            />
+          </UserMenu>
         </div>
       </header>
 
@@ -327,17 +321,7 @@ const Index = () => {
         )}
       </main>
 
-      {/* Mobile floating AI button */}
-      {isMobile && !mobileAIOpen && (
-        <button
-          onClick={() => setMobileAIOpen(true)}
-          className="fixed bottom-20 right-4 z-[150] w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
-          aria-label="Talk with AI"
-        >
-          <Sparkles className="w-6 h-6" />
-        </button>
-      )}
-      {mobileAIOpen && (
+      {isMobile && mobileAIOpen && (
         <MobileAIChat
           onBack={() => setMobileAIOpen(false)}
           timerProgress={timer.progress}
@@ -351,7 +335,7 @@ const Index = () => {
 
       <Garden gardenFlowers={gardenFlowers} isOpen={gardenOpen} onClose={() => setGardenOpen(false)} />
       <ChatHistory isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
-      <StickyNotes />
+      <StickyNotes onTalkWithAI={isMobile ? () => setMobileAIOpen(true) : undefined} />
       <HelpGuide />
     </div>
   );
