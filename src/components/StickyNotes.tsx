@@ -200,7 +200,7 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
         <div className="fixed bottom-24 right-6 z-[55] flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2">
           <FabItem icon={StickyIcon} label={t("sticky_note")} onClick={() => { setCreating("sticky"); setMenuOpen(false); }} />
           <FabItem icon={ImageIcon} label={t("media")} onClick={() => { setCreating("media"); setMenuOpen(false); }} />
-          <FabItem icon={Sparkles} label={t("talk_with_ai")} badge={t("new_badge")} onClick={() => { addAiNote(); setMenuOpen(false); }} />
+          <FabItem icon={Sparkles} label={t("talk_with_ai")} badge={t("new_badge")} onClick={() => { if (onTalkWithAI) onTalkWithAI(); else addAiNote(); setMenuOpen(false); }} />
         </div>
       )}
 
