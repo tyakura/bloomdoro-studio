@@ -174,40 +174,34 @@ const Index = () => {
         <BloomdoroLogo />
         <div className="flex items-center gap-2 sm:gap-3">
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
-          {!isMobile && (
-            <>
-              <button
-                onClick={() => setGardenOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-              >
-                <Flower2 className="w-4 h-4" />
-                {t("garden")}
-              </button>
-              <button
-                onClick={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-                title={user ? "" : "Perlu login"}
-              >
-                {user ? <History className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />}
-                {t("ai_history")}
-              </button>
-            </>
-          )}
-          <AuthBanner />
-          <SettingsModal
-            onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
-            showGarden={isMobile}
-            onGardenOpen={() => setGardenOpen(true)}
-            onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
-            bgImage={bg.url}
-            bgKind={bg.kind}
-            overlayOpacity={bg.overlay}
-            onOverlayChange={(v) => setBg(b => ({ ...b, overlay: v }))}
-            glassOpacity={bg.glass}
-            onGlassChange={(v) => setBg(b => ({ ...b, glass: v }))}
-            bgVideoMuted={bg.muted}
-            onBgVideoMutedChange={(v) => setBg(b => ({ ...b, muted: v }))}
-          />
+          <UserMenu>
+            <button
+              onClick={() => setGardenOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-sm"
+            >
+              <Flower2 className="w-4 h-4" /> {t("garden")}
+            </button>
+            <button
+              onClick={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
+              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-sm"
+            >
+              {user ? <History className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />} {t("ai_history")}
+            </button>
+            <SettingsModal
+              onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
+              showGarden={isMobile}
+              onGardenOpen={() => setGardenOpen(true)}
+              onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
+              bgImage={bg.url}
+              bgKind={bg.kind}
+              overlayOpacity={bg.overlay}
+              onOverlayChange={(v) => setBg(b => ({ ...b, overlay: v }))}
+              glassOpacity={bg.glass}
+              onGlassChange={(v) => setBg(b => ({ ...b, glass: v }))}
+              bgVideoMuted={bg.muted}
+              onBgVideoMutedChange={(v) => setBg(b => ({ ...b, muted: v }))}
+            />
+          </UserMenu>
         </div>
       </header>
 
