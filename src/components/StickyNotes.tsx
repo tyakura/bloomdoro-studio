@@ -75,7 +75,7 @@ const isLightColor = (hex: string) => {
 
 const NOTES_KEY = "bloomdoro_notes";
 
-export function StickyNotes() {
+export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}) {
   const { t } = useLang();
   const [notes, setNotes] = useState<AnyNote[]>(() => loadJSON<AnyNote[]>(NOTES_KEY, []));
   const [menuOpen, setMenuOpen] = useState(false);
