@@ -19,7 +19,7 @@ import { MobileAIChat } from "@/components/MobileAIChat";
 import { Sparkles } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
-import { AuthBanner } from "@/components/AuthBanner";
+import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
