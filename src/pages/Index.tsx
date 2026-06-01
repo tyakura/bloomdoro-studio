@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Play, Pause, RotateCcw, Trophy, Flower2, Coffee, Square, MousePointerClick, History } from "lucide-react";
+import { Play, Pause, RotateCcw, Trophy, Coffee, Square, MousePointerClick } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { TimerRing } from "@/components/TimerRing";
 import { TimerSetup, TimerTheme } from "@/components/TimerSetup";
@@ -16,13 +16,14 @@ import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileAIChat } from "@/components/MobileAIChat";
+import { MobileTimerHeader } from "@/components/MobileTimerHeader";
+import { SocialBreakPanel } from "@/components/SocialBreakPanel";
 
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
 import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type SessionPhase = "setup" | "focus" | "break" | "complete";
@@ -30,6 +31,7 @@ type SessionPhase = "setup" | "focus" | "break" | "complete";
 interface BgState { url: string | null; kind: BgKind; overlay: number; glass: number; muted: boolean; }
 
 const BG_KEY = "bloomdoro_bg";
+const BREAK_SOCIAL_KEY = "bloomdoro_break_social";
 
 const Index = () => {
   const { t } = useLang();
@@ -39,16 +41,20 @@ const Index = () => {
   const [customMinutes, setCustomMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(0);
   const [repeatMode, setRepeatMode] = useState(false);
+  const [breakWithSocial, setBreakWithSocial] = useState<boolean>(() => loadJSON(BREAK_SOCIAL_KEY, false));
   const [cycleCount, setCycleCount] = useState(0);
   const [theme, setTheme] = useState<TimerTheme>("flower");
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
   const [musicName, setMusicName] = useState<string | null>(null);
   const [gardenOpen, setGardenOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [gardenFlowers, setGardenFlowers] = useState<FlowerVariant[]>(() => loadJSON("bloomdoro_garden", [] as FlowerVariant[]));
   const [currentFlowerVariant, setCurrentFlowerVariant] = useState<FlowerVariant>(0);
   const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
   const [mobileAIOpen, setMobileAIOpen] = useState(false);
+  const [socialOpen, setSocialOpen] = useState(false);
+  const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   const musicStopRef = useRef<(() => void) | null>(null);
   const completionHandledRef = useRef(false);
   const isMobile = useIsMobile();
@@ -58,6 +64,20 @@ const Index = () => {
   useEffect(() => { saveJSON(BG_KEY, bg); }, [bg]);
   useEffect(() => { saveJSON("bloomdoro_garden", gardenFlowers); }, [gardenFlowers]);
   useEffect(() => { saveJSON("bloomdoro_sessions", sessions); }, [sessions]);
+  useEffect(() => { saveJSON(BREAK_SOCIAL_KEY, breakWithSocial); }, [breakWithSocial]);
+
+  // Profile load
+  useEffect(() => {
+    if (!user) { setProfile(null); return; }
+    supabase.from("profiles").select("display_name, avatar_url").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setProfile(data || null));
+  }, [user]);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from("profiles").select("display_name, avatar_url").eq("user_id", user.id).maybeSingle();
+    setProfile(data || null);
+  }, [user]);
 
   // Track elapsed for easter egg
   const [repeatElapsed, setRepeatElapsed] = useState(0);
@@ -67,10 +87,17 @@ const Index = () => {
     return () => clearInterval(id);
   }, [repeatMode, phase, timer.status]);
 
-  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean) => {
+  // Auto-open social on break
+  useEffect(() => {
+    if (phase === "break" && breakWithSocial) setSocialOpen(true);
+    if (phase !== "break") setSocialOpen(false);
+  }, [phase, breakWithSocial]);
+
+  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean, withSocial: boolean) => {
     setCustomMinutes(minutes);
     setBreakMinutes(breakMins);
     setRepeatMode(repeat);
+    setBreakWithSocial(withSocial);
     setCycleCount(0);
     setRepeatElapsed(0);
     setTheme(selectedTheme);
@@ -170,40 +197,31 @@ const Index = () => {
       <EasterEggBackground elapsedSeconds={repeatElapsed} active={repeatMode && phase === "focus"} theme={theme} />
 
       {/* Header */}
-      <header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
+      <header data-app-header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
         <BloomdoroLogo />
         <div className="flex items-center gap-2 sm:gap-3">
           <MusicPlayer url={musicUrl} name={musicName} onClear={() => { setMusicUrl(null); setMusicName(null); }} stopRef={musicStopRef} />
-          <UserMenu>
-            <button
-              onClick={() => setGardenOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-sm"
-            >
-              <Flower2 className="w-4 h-4" /> {t("garden")}
-            </button>
-            <button
-              onClick={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
-              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-sm"
-            >
-              {user ? <History className="w-4 h-4" /> : <Lock className="w-3.5 h-3.5" />} {t("ai_history")}
-            </button>
-            <SettingsModal
-              onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
-              showGarden={isMobile}
-              onGardenOpen={() => setGardenOpen(true)}
-              onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
-              bgImage={bg.url}
-              bgKind={bg.kind}
-              overlayOpacity={bg.overlay}
-              onOverlayChange={(v) => setBg(b => ({ ...b, overlay: v }))}
-              glassOpacity={bg.glass}
-              onGlassChange={(v) => setBg(b => ({ ...b, glass: v }))}
-              bgVideoMuted={bg.muted}
-              onBgVideoMutedChange={(v) => setBg(b => ({ ...b, muted: v }))}
-            />
-          </UserMenu>
+          <UserMenu
+            avatarUrl={profile?.avatar_url}
+            displayName={profile?.display_name}
+            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenGarden={() => setGardenOpen(true)}
+            onOpenHistory={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
+          />
         </div>
       </header>
+
+      {/* Mobile sticky timer header */}
+      {isMobile && (phase === "focus" || phase === "break") && (
+        <MobileTimerHeader
+          minutes={timer.minutes}
+          seconds={timer.seconds}
+          progress={timer.progress}
+          theme={theme}
+          flowerVariant={currentFlowerVariant}
+          phase={phase}
+        />
+      )}
 
       {/* Session Counter */}
       <div className="flex justify-center mt-4 relative z-10">
@@ -218,7 +236,13 @@ const Index = () => {
       <main className="flex-1 flex items-center justify-center px-6 pb-12 relative z-10">
         {phase === "setup" ? (
           <div className="flex flex-col items-center gap-5">
-            <TimerSetup onStart={handleStart} defaultTheme={theme} glassActive={!!bg.url} glassOpacity={bg.glass} />
+            <TimerSetup
+              onStart={handleStart}
+              defaultTheme={theme}
+              glassActive={!!bg.url}
+              glassOpacity={bg.glass}
+              defaultBreakWithSocial={breakWithSocial}
+            />
             <p className="text-center text-xs text-muted-foreground/80">
               copyright©all rights reserved by attayaarkarna12@gmail.com
             </p>
@@ -330,6 +354,26 @@ const Index = () => {
           theme={theme}
           flowerVariant={currentFlowerVariant}
           isFocusing={phase === "focus"}
+        />
+      )}
+
+      {socialOpen && <SocialBreakPanel onClose={() => setSocialOpen(false)} />}
+
+      {settingsOpen && (
+        <SettingsModal
+          onClose={() => setSettingsOpen(false)}
+          onMusicLoad={(url, name) => { setMusicUrl(url); setMusicName(name); }}
+          onBgChange={(url, kind) => setBg(b => ({ ...b, url, kind, muted: kind === "video" || kind === "youtube" ? false : b.muted }))}
+          bgImage={bg.url}
+          bgKind={bg.kind}
+          overlayOpacity={bg.overlay}
+          onOverlayChange={(v) => setBg(b => ({ ...b, overlay: v }))}
+          glassOpacity={bg.glass}
+          onGlassChange={(v) => setBg(b => ({ ...b, glass: v }))}
+          bgVideoMuted={bg.muted}
+          onBgVideoMutedChange={(v) => setBg(b => ({ ...b, muted: v }))}
+          profile={profile}
+          onProfileRefresh={refreshProfile}
         />
       )}
 
