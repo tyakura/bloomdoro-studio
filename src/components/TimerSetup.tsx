@@ -1,29 +1,29 @@
 import { useState } from "react";
-import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X } from "lucide-react";
+import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type TimerTheme = "flower" | "rocket";
 
 interface TimerSetupProps {
-  onStart: (minutes: number, theme: TimerTheme, breakMinutes: number, repeat: boolean) => void;
+  onStart: (minutes: number, theme: TimerTheme, breakMinutes: number, repeat: boolean, breakWithSocial: boolean) => void;
   defaultTheme?: TimerTheme;
   glassActive?: boolean;
   glassOpacity?: number;
+  defaultBreakWithSocial?: boolean;
 }
 
 const PRESETS = [15, 25, 30, 45, 60];
 const BREAK_PRESETS = [5, 10, 25, 30];
 
-export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = false, glassOpacity = 40 }: TimerSetupProps) {
+export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = false, glassOpacity = 40, defaultBreakWithSocial = false }: TimerSetupProps) {
   const [minutes, setMinutes] = useState(25);
   const [theme, setTheme] = useState<TimerTheme>(defaultTheme);
   const [showBreak, setShowBreak] = useState(false);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [repeat, setRepeat] = useState(false);
+  const [breakWithSocial, setBreakWithSocial] = useState(defaultBreakWithSocial);
   const dec = () => setMinutes(m => Math.max(1, m - 5));
   const inc = () => setMinutes(m => Math.min(120, m + 5));
-
-
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 md:flex-row md:items-start">
@@ -47,9 +47,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <button
               onClick={() => setTheme("flower")}
               className={`flex flex-col items-center gap-2 px-6 py-4 rounded-xl border-2 transition-all ${
-                theme === "flower"
-                  ? "border-primary bg-badge-bg shadow-sm"
-                  : "border-border bg-secondary hover:bg-muted"
+                theme === "flower" ? "border-primary bg-badge-bg shadow-sm" : "border-border bg-secondary hover:bg-muted"
               }`}
             >
               <Flower2 className={`w-8 h-8 ${theme === "flower" ? "text-primary" : "text-muted-foreground"}`} />
@@ -60,9 +58,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <button
               onClick={() => setTheme("rocket")}
               className={`flex flex-col items-center gap-2 px-6 py-4 rounded-xl border-2 transition-all ${
-                theme === "rocket"
-                  ? "border-primary bg-badge-bg shadow-sm"
-                  : "border-border bg-secondary hover:bg-muted"
+                theme === "rocket" ? "border-primary bg-badge-bg shadow-sm" : "border-border bg-secondary hover:bg-muted"
               }`}
             >
               <Rocket className={`w-8 h-8 ${theme === "rocket" ? "text-primary" : "text-muted-foreground"}`} />
@@ -74,19 +70,11 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
         </div>
 
         <div className="flex items-center gap-6">
-          <button
-            onClick={dec}
-            className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors"
-          >
+          <button onClick={dec} className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors">
             <Minus className="w-5 h-5" />
           </button>
-          <div className="font-display text-7xl font-bold tabular-nums text-foreground min-w-[120px] text-center">
-            {minutes}
-          </div>
-          <button
-            onClick={inc}
-            className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors"
-          >
+          <div className="font-display text-7xl font-bold tabular-nums text-foreground min-w-[120px] text-center">{minutes}</div>
+          <button onClick={inc} className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors">
             <Plus className="w-5 h-5" />
           </button>
         </div>
@@ -98,9 +86,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
               key={p}
               onClick={() => setMinutes(p)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                minutes === p
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-muted"
+                minutes === p ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
               {p}m
@@ -108,36 +94,30 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
           ))}
         </div>
 
-        {/* Add Break Button */}
         {!showBreak && (
           <button
             onClick={() => setShowBreak(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
           >
-            <Coffee className="w-4 h-4" />
-            Tambahkan Waktu Istirahat
+            <Coffee className="w-4 h-4" /> Tambahkan Waktu Istirahat
           </button>
         )}
 
-        {/* Repeat Toggle (shown when break is enabled) */}
         {showBreak && (
           <div className="flex items-center gap-3 w-full justify-center">
             <button
               onClick={() => setRepeat(!repeat)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                repeat
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-muted"
+                repeat ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
-              <Repeat className="w-4 h-4" />
-              Repeat {repeat ? "ON" : "OFF"}
+              <Repeat className="w-4 h-4" /> Repeat {repeat ? "ON" : "OFF"}
             </button>
           </div>
         )}
 
         <Button
-          onClick={() => onStart(minutes, theme, showBreak ? breakMinutes : 0, repeat)}
+          onClick={() => onStart(minutes, theme, showBreak ? breakMinutes : 0, repeat, showBreak ? breakWithSocial : false)}
           className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
           size="icon"
         >
@@ -145,7 +125,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
         </Button>
       </div>
 
-      {/* Break Timer Card (desktop/tablet only, shown when enabled) */}
+      {/* Break Timer Card */}
       {showBreak && (
         <div
           className={`flex flex-col items-center gap-6 p-8 rounded-2xl border shadow-sm max-w-sm w-full ${glassActive ? 'border-white/30' : 'bg-card border-border'}`}
@@ -157,11 +137,10 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
         >
           <div className="flex items-center justify-between w-full">
             <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase inline-flex items-center gap-1.5">
-              <Coffee className="w-3.5 h-3.5" />
-              Break Time
+              <Coffee className="w-3.5 h-3.5" /> Break Time
             </span>
             <button
-              onClick={() => { setShowBreak(false); setRepeat(false); }}
+              onClick={() => { setShowBreak(false); setRepeat(false); setBreakWithSocial(false); }}
               className="text-muted-foreground hover:text-foreground text-sm"
               aria-label="Close"
             >
@@ -170,19 +149,11 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
           </div>
 
           <div className="flex items-center gap-6">
-            <button
-              onClick={() => setBreakMinutes((m) => Math.max(1, m - 1))}
-              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors"
-            >
+            <button onClick={() => setBreakMinutes((m) => Math.max(1, m - 1))} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors">
               <Minus className="w-4 h-4" />
             </button>
-            <div className="font-display text-5xl font-bold tabular-nums text-foreground min-w-[80px] text-center">
-              {breakMinutes}
-            </div>
-            <button
-              onClick={() => setBreakMinutes((m) => Math.min(60, m + 1))}
-              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors"
-            >
+            <div className="font-display text-5xl font-bold tabular-nums text-foreground min-w-[80px] text-center">{breakMinutes}</div>
+            <button onClick={() => setBreakMinutes((m) => Math.min(60, m + 1))} className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground hover:bg-muted transition-colors">
               <Plus className="w-4 h-4" />
             </button>
           </div>
@@ -194,15 +165,29 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
                 key={p}
                 onClick={() => setBreakMinutes(p)}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  breakMinutes === p
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-muted"
+                  breakMinutes === p ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
                 }`}
               >
                 {p}m
               </button>
             ))}
           </div>
+
+          {/* Social toggle */}
+          <button
+            onClick={() => setBreakWithSocial(v => !v)}
+            className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${
+              breakWithSocial ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
+            }`}
+          >
+            <Share2 className="w-4 h-4" />
+            Istirahat dengan medsos? {breakWithSocial ? "ON" : "OFF"}
+          </button>
+          {breakWithSocial && (
+            <p className="text-[11px] text-muted-foreground text-center -mt-3">
+              Panel media sosial otomatis terbuka saat istirahat dimulai.
+            </p>
+          )}
         </div>
       )}
     </div>

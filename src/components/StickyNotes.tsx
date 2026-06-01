@@ -111,16 +111,21 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
   }, []);
 
 
-  // Drag
+  // Drag (clamps below the app header on desktop)
   const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
     e.preventDefault();
     const el = (e.target as HTMLElement).closest("[data-note-id]") as HTMLElement;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     dragRef.current = { id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+    const header = document.querySelector("[data-app-header]") as HTMLElement | null;
+    const minY = isDesktop ? (header ? header.getBoundingClientRect().bottom + 4 : 80) : 0;
     const onMove = (ev: PointerEvent) => {
       const d = dragRef.current; if (!d) return;
-      setNotes(prev => prev.map(n => n.id === d.id ? { ...n, x: ev.clientX - d.offsetX, y: ev.clientY - d.offsetY } : n));
+      const nextX = ev.clientX - d.offsetX;
+      const nextY = Math.max(minY, ev.clientY - d.offsetY);
+      setNotes(prev => prev.map(n => n.id === d.id ? { ...n, x: nextX, y: nextY } : n));
     };
     const onUp = () => { dragRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
     window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);

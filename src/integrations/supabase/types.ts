@@ -138,6 +138,7 @@ export type Database = {
           language: string | null
           music_name: string | null
           music_url: string | null
+          social_links: Json | null
           updated_at: string
           user_id: string
           volume: number | null
@@ -152,6 +153,7 @@ export type Database = {
           language?: string | null
           music_name?: string | null
           music_url?: string | null
+          social_links?: Json | null
           updated_at?: string
           user_id: string
           volume?: number | null
@@ -166,6 +168,7 @@ export type Database = {
           language?: string | null
           music_name?: string | null
           music_url?: string | null
+          social_links?: Json | null
           updated_at?: string
           user_id?: string
           volume?: number | null
