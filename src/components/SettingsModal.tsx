@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Settings, X, Upload, Flower2, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff, Languages, Lock } from "lucide-react";
+import { X, Upload, Image, Volume2, Moon, Sun, CloudRain, Flame, Bird, Waves, VolumeOff, Languages, Lock, LogOut, Camera, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useLang, LANGUAGES, Lang } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AMBIENT_SOUNDS = [
   { id: "rain", label: "Rain", icon: CloudRain, url: "https://cdn.freesound.org/previews/531/531947_6271029-lq.mp3" },
@@ -17,9 +19,8 @@ const AMBIENT_SOUNDS = [
 export type BgKind = "image" | "video" | "youtube";
 
 interface SettingsModalProps {
+  onClose: () => void;
   onMusicLoad: (url: string, name: string) => void;
-  showGarden?: boolean;
-  onGardenOpen?: () => void;
   onBgChange?: (url: string | null, kind: BgKind) => void;
   bgImage?: string | null;
   bgKind?: BgKind;
@@ -29,6 +30,8 @@ interface SettingsModalProps {
   onGlassChange?: (val: number) => void;
   bgVideoMuted?: boolean;
   onBgVideoMutedChange?: (v: boolean) => void;
+  profile?: { display_name: string | null; avatar_url: string | null } | null;
+  onProfileRefresh?: () => void | Promise<void>;
 }
 
 function getYouTubeId(url: string): string | null {
@@ -89,10 +92,94 @@ function LoginGate({ label }: { label: string }) {
   );
 }
 
-export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, onBgChange, bgImage, bgKind = "image", overlayOpacity = 70, onOverlayChange, glassOpacity = 40, onGlassChange, bgVideoMuted = true, onBgVideoMutedChange }: SettingsModalProps) {
+function AccountSection({ profile, onRefresh, onClose }: { profile?: { display_name: string | null; avatar_url: string | null } | null; onRefresh?: () => void | Promise<void>; onClose: () => void }) {
+  const { user } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  if (!user) {
+    return (
+      <div>
+        <h3 className="font-display font-semibold text-sm text-foreground mb-3">Akun</h3>
+        <div className="rounded-lg bg-muted/40 border border-dashed border-border p-4 text-center space-y-2">
+          <p className="text-xs text-muted-foreground">Belum login. Login untuk simpan data lintas perangkat.</p>
+          <Link to="/auth" onClick={onClose} className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <LogIn className="w-3.5 h-3.5" /> Masuk / Daftar
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const initial = (profile?.display_name || user.email || "?").charAt(0).toUpperCase();
+
+  const handleAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Hanya gambar"); return; }
+    if (file.size > 3 * 1024 * 1024) { toast.error("Maks 3MB"); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/avatar.${ext}`;
+      // remove old
+      await supabase.storage.from("avatars").remove([
+        `${user.id}/avatar.jpg`, `${user.id}/avatar.png`, `${user.id}/avatar.webp`, `${user.id}/avatar.jpeg`
+      ]).catch(() => {});
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { error: upProfErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("user_id", user.id);
+      if (upProfErr) throw upProfErr;
+      await onRefresh?.();
+      toast.success("Foto profil diperbarui");
+    } catch (err: any) {
+      toast.error("Gagal upload: " + (err.message || ""));
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="font-display font-semibold text-sm text-foreground mb-3">Akun</h3>
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
+        <div className="relative">
+          <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-display font-bold text-lg overflow-hidden">
+            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : initial}
+          </div>
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow border-2 border-card hover:bg-primary/90"
+            aria-label="Ganti foto"
+          >
+            <Camera className="w-3 h-3" />
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate">{profile?.display_name || user.email?.split("@")[0]}</p>
+          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          {uploading && <p className="text-[10px] text-primary mt-0.5">Mengunggah...</p>}
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        className="w-full mt-3 text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+        onClick={async () => { await supabase.auth.signOut(); onClose(); toast.success("Keluar berhasil"); }}
+      >
+        <LogOut className="w-4 h-4" /> Keluar
+      </Button>
+    </div>
+  );
+}
+
+export function SettingsModal({ onClose, onMusicLoad, onBgChange, bgImage, bgKind = "image", overlayOpacity = 70, glassOpacity = 40, onOverlayChange, onGlassChange, bgVideoMuted = true, onBgVideoMutedChange, profile, onProfileRefresh }: SettingsModalProps) {
   const { t, lang, setLang } = useLang();
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [bgUrl, setBgUrl] = useState("");
   const [volume, setVolume] = useState(() => parseInt(localStorage.getItem("bloomdoro_volume") || "50"));
@@ -113,10 +200,8 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
     if (!file) return;
     const isVideo = file.type.startsWith("video/");
     if (isVideo) {
-      // videos: use blob URL (too large to base64); user accepts that videos may not persist
       onBgChange?.(URL.createObjectURL(file), "video");
     } else {
-      // images: convert to data URL so it persists
       const { toDataURL } = await import("@/lib/persist");
       const data = await toDataURL(file);
       onBgChange?.(data, "image");
@@ -170,29 +255,19 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
     if (audioRef.current) audioRef.current.volume = val[0] / 100;
   };
 
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-muted transition-colors text-sm font-medium"
-      >
-        <Settings className="w-4 h-4" />
-        <span className="hidden sm:inline">{t("settings")}</span>
-      </button>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
-      <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-foreground/20 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-display text-xl font-bold text-foreground">{t("settings")}</h2>
-          <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-foreground">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="space-y-6">
+          <AccountSection profile={profile} onRefresh={onProfileRefresh} onClose={onClose} />
+
           <DarkModeToggle />
 
           {/* Language */}
@@ -215,20 +290,6 @@ export function SettingsModal({ onMusicLoad, showGarden = false, onGardenOpen, o
               ))}
             </div>
           </div>
-
-          {showGarden && onGardenOpen && (
-            <div>
-              <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("garden")}</h3>
-              <Button
-                onClick={() => { onGardenOpen(); setIsOpen(false); }}
-                variant="outline"
-                className="w-full justify-start gap-2"
-              >
-                <Flower2 className="w-4 h-4" />
-                {t("open_garden")}
-              </Button>
-            </div>
-          )}
 
           <div>
             <h3 className="font-display font-semibold text-sm text-foreground mb-3">{t("ambient_sounds")}</h3>
