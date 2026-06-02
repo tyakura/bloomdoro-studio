@@ -41,18 +41,19 @@ export function MobileAIChat({ onBack, timerProgress, timerMinutes, timerSeconds
       const dataUrl = await new Promise<string>((res, rej) => {
         const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(f);
       });
-      setMessages(m => [...m, { role: "user", content: `📎 Mengirim file: ${f.name}` }]);
+      setMessages(m => [...m, { role: "user", content: `📎 ${f.name}` }]);
       const { data, error } = await supabase.functions.invoke("process-file", {
         body: { action: "extract", fileName: f.name, fileType: f.type, dataUrl },
       });
       if (error) throw error;
       const txt = data.text || "";
       setExtractedText(txt);
-      setMessages(m => [...m, { role: "assistant", content: `Aku sudah membaca **${f.name}** (${txt.length} karakter).\n\nFile ini ingin diapakan?\n- Ringkas\n- Terjemahkan\n- Konversi ke TXT/MD/HTML/PDF\n- Jelaskan / analisis\n\nTulis perintahmu di bawah.` }]);
+      setMessages(m => [...m, { role: "assistant", content: `Aku sudah membaca **${f.name}** (${txt.length} karakter).\n\n**Apa yang ingin kamu lakukan dengan file ini?**\n\n- ✍️ Ringkas / Terjemahkan / Jelaskan\n- 🔄 Konversi ke: **PDF, Word (DOC/DOCX), TXT, MD, HTML, RTF, JSON, CSV, XML, EPUB**\n- 💬 Atau tanya bebas\n\nContoh: "konversi ke docx", "ringkas dalam 5 poin", "jelaskan bagian utama".` }]);
     } catch (e: any) {
       toast.error(e.message || "Gagal proses file");
     } finally { setLoading(false); }
   };
+
 
   const send = async () => {
     const text = input.trim();
@@ -61,9 +62,9 @@ export function MobileAIChat({ onBack, timerProgress, timerMinutes, timerSeconds
     setMessages(newMsgs); setInput(""); setLoading(true);
 
     // Detect conversion intent
-    const m = text.match(/konversi|convert|ubah .* ke (txt|md|html|pdf)|export.*(txt|md|html|pdf)/i);
+    const m = text.match(/konversi|convert|ubah .* ke (pdf|doc|docx|txt|md|html|rtf|json|csv|xml|epub)|export.*(pdf|doc|docx|txt|md|html|rtf|json|csv|xml|epub)/i);
     if (m && extractedText) {
-      const fmt = (text.match(/\b(txt|md|html|pdf)\b/i)?.[1] || "txt").toLowerCase();
+      const fmt = (text.match(/\b(pdf|docx|doc|txt|md|html|rtf|json|csv|xml|epub)\b/i)?.[1] || "txt").toLowerCase();
       try {
         const { data, error } = await supabase.functions.invoke("process-file", {
           body: { action: "convert", text: extractedText, format: fmt, title: "bloomdoro-export" },

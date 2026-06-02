@@ -16,7 +16,6 @@ import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileAIChat } from "@/components/MobileAIChat";
-import { MobileTimerHeader } from "@/components/MobileTimerHeader";
 import { SocialBreakPanel } from "@/components/SocialBreakPanel";
 
 import { useLang } from "@/lib/i18n";
@@ -168,7 +167,11 @@ const Index = () => {
   const pad = (n: number) => n.toString().padStart(2, "0");
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative">
+    <div
+      className="min-h-screen bg-background flex flex-col relative"
+      style={{ "--nav-h": "72px" } as React.CSSProperties}
+      data-social-open={socialOpen ? "true" : undefined}
+    >
       {/* Background */}
       {bg.url && bg.kind === "video" && (
         <video
@@ -196,6 +199,11 @@ const Index = () => {
 
       <EasterEggBackground elapsedSeconds={repeatElapsed} active={repeatMode && phase === "focus"} theme={theme} />
 
+      {/* Shrink wrapper: when social panel open, slide & scale content left (desktop only) */}
+      <div
+        className="flex-1 flex flex-col transition-transform duration-300 ease-out origin-top-left"
+        style={socialOpen && !isMobile ? { transform: "translateX(-8%) scale(0.85)" } : undefined}
+      >
       {/* Header */}
       <header data-app-header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
         <BloomdoroLogo />
@@ -210,18 +218,6 @@ const Index = () => {
           />
         </div>
       </header>
-
-      {/* Mobile sticky timer header */}
-      {isMobile && (phase === "focus" || phase === "break") && (
-        <MobileTimerHeader
-          minutes={timer.minutes}
-          seconds={timer.seconds}
-          progress={timer.progress}
-          theme={theme}
-          flowerVariant={currentFlowerVariant}
-          phase={phase}
-        />
-      )}
 
       {/* Session Counter */}
       <div className="flex justify-center mt-4 relative z-10">
@@ -344,6 +340,8 @@ const Index = () => {
           </div>
         )}
       </main>
+      </div>
+
 
       {isMobile && mobileAIOpen && (
         <MobileAIChat

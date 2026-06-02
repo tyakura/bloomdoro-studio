@@ -139,13 +139,25 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase inline-flex items-center gap-1.5">
               <Coffee className="w-3.5 h-3.5" /> Break Time
             </span>
-            <button
-              onClick={() => { setShowBreak(false); setRepeat(false); setBreakWithSocial(false); }}
-              className="text-muted-foreground hover:text-foreground text-sm"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setBreakWithSocial(v => !v)}
+                title={breakWithSocial ? "Medsos ON" : "Medsos OFF"}
+                aria-label="Toggle social"
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                  breakWithSocial ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-secondary text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => { setShowBreak(false); setRepeat(false); setBreakWithSocial(false); }}
+                className="text-muted-foreground hover:text-foreground p-1"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-6">
@@ -173,19 +185,10 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             ))}
           </div>
 
-          {/* Social toggle */}
-          <button
-            onClick={() => setBreakWithSocial(v => !v)}
-            className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${
-              breakWithSocial ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-muted"
-            }`}
-          >
-            <Share2 className="w-4 h-4" />
-            Istirahat dengan medsos? {breakWithSocial ? "ON" : "OFF"}
-          </button>
           {breakWithSocial && (
-            <p className="text-[11px] text-muted-foreground text-center -mt-3">
-              Panel media sosial otomatis terbuka saat istirahat dimulai.
+            <p className="text-[11px] text-muted-foreground text-center inline-flex items-center gap-1">
+              <Share2 className="w-3 h-3" />
+              Medsos otomatis terbuka saat istirahat
             </p>
           )}
         </div>
@@ -193,3 +196,4 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
     </div>
   );
 }
+
