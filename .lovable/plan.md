@@ -1,66 +1,75 @@
 # Rencana Perubahan
 
-## 1. Bug: Settings langsung tertutup sendiri
-**Akar masalah**: `SettingsModal` berada di dalam `<PopoverContent>` (UserMenu). Saat klik tombol Settings, event bubble ke `onClick={() => setOpen(false)}` di `UserMenu`, yang menutup popover — dan karena modal Settings juga di-unmount bersama popover, modal ikut hilang.
+## 1. Mobile: Live preview hanya saat Talk with AI
+- `MobileTimerHeader` saat ini selalu muncul di mobile saat focus/break. Ubah agar hanya muncul saat `MobileAIChat` terbuka (live preview ada di header chat).
+- Hapus `MobileTimerHeader` dari layout utama mobile; pindahkan / pastikan animasi (bunga/roket) hanya tampil di header `MobileAIChat`.
+- Perkecil animasi bunga/roket lebih jauh (scale ~0.35 + max-width clamp) supaya muat di header 25vh tanpa overflow horizontal. Tambah `overflow-hidden` dan `flex-shrink`.
 
-**Fix**:
-- Pindahkan rendering `SettingsModal` (dan modal lain seperti Garden/History) ke level `Index.tsx`, BUKAN sebagai child popover.
-- `UserMenu` hanya berisi tombol pemicu yang memanggil prop `onOpenSettings`, `onOpenGarden`, `onOpenHistory`.
-- Tambahkan `e.stopPropagation()` di tombol-tombol di dalam popover sebagai pengaman.
+## 2. Settings: terjemahkan teks yang masih Indonesia
+- Audit `SettingsModal.tsx` (label "Akun", "Bahasa", "Background", "Musik", "Ambient", "Overlay", "Glass", "Keluar", "Upload", placeholder URL, tombol Go, dll) dan ganti hardcoded string ke `t("...")`.
+- Tambah key baru di `src/lib/i18n.tsx` untuk semua bahasa: id, en, ar, ja, zh. Lakukan hal sama untuk `TimerSetup` (toggle "Istirahat dengan medsos?"), `UserMenu`, `SocialBreakPanel`, `MobileAIChat` (placeholder, tombol).
 
-## 2. Logout di Settings
-- Tambahkan section "Akun" di `SettingsModal` (hanya jika `user`): nama + email + tombol "Keluar" → `supabase.auth.signOut()`.
-- Hapus tombol logout duplikat dari `UserMenu` (opsional, biarkan keduanya).
+## 3. AI: Upload file → tanya tujuan + konversi banyak format
+- Saat user upload file di `MobileAIChat` dan AI box desktop:
+  - Setelah ekstraksi sukses, tampilkan pesan asisten + grid tombol aksi: Ringkas, Terjemahkan, Jelaskan, Konversi ke …, Tanya bebas.
+  - Klik "Konversi ke …" memunculkan picker format target tergantung sumber:
+    - PDF → DOCX, TXT, MD, HTML, RTF, ODT, EPUB, gambar (PNG per page)
+    - DOCX → PDF, TXT, MD, HTML, RTF, ODT
+    - Image → PDF, TXT (OCR), MD, DOCX
+    - TXT/MD → PDF, DOCX, HTML, RTF
+- Perluas edge function `process-file/index.ts` `action: "convert"`:
+  - Tambah format: `docx` (pakai `docx` npm via esm.sh), `rtf` (template plain), `odt` (template minimal), `epub` (pakai `epub-gen-memory`), `png` (untuk pdf→png pakai pdfium / unpdf render). Untuk format yang sulit di Deno, fallback ke HTML printable dengan nama ekstensi target + catatan.
+  - Validasi: tolak kombinasi yang tidak didukung dengan pesan jelas.
+- UI: tambah komponen kecil `FileActionBar` di MobileAIChat dan AI desktop yang render setelah `extractedText` tersedia.
 
-## 3. Foto profil
-- Buat bucket storage `avatars` (public) via migration + RLS policy (user hanya bisa upload/update file di folder `{auth.uid()}/`).
-- Di `SettingsModal` section Akun: avatar bulat + tombol upload → upload ke `avatars/{user.id}/avatar.jpg` → update `profiles.avatar_url`.
-- `UserMenu` tampilkan avatar bila ada, fallback ke inisial.
+## 4. Batas drag: kanan/kiri/bawah maksimal 1/4 layar
+- Di `StickyNotes.tsx` dan kotak Media/AI (desktop draggable):
+  - Hitung viewport `vw`, `vh`.
+  - Clamp posisi sehingga elemen tidak bisa keluar lebih dari `vw/4` ke kiri/kanan dan `vh/4` ke bawah dari area visible (artinya minimal 3/4 elemen harus tetap terlihat di area itu). Atas tetap clamp di bawah navbar (sudah ada).
+  - Terapkan di handler `onPointerMove` untuk ketiga kotak.
 
-## 4. Header mobile "atap Bloomdoro"
-- Komponen baru `MobileTimerHeader` (sticky top, hanya mobile, hanya saat `phase === "focus" | "break"`).
-- Isi: timer mm:ss kiri, mini animasi bunga/roket kanan (versi kecil dari GrowingFlower/Rocket via prop `size`).
-- Hilang otomatis saat `phase === "setup" | "complete"`.
+## 5. Tombol istirahat: toggle ikon untuk Medsos
+- Di kotak/area break (TimerSetup saat phase=break atau panel break aktif), ganti toggle text "Istirahat dengan medsos?" menjadi tombol ikon kecil (icon `Globe`/`Share2`) yang bisa di-toggle on/off. Tooltip menampilkan label terjemahan.
+- State `breakWithSocial` tetap dipersist seperti sebelumnya.
 
-## 5. Fitur Medsos saat istirahat
-- Tambah toggle di `TimerSetup` (di bawah input waktu istirahat): "Istirahat dengan medsos?" (disable bila break = 0).
-- State `breakWithSocial: boolean` disimpan di `localStorage` + diteruskan ke `handleStart`.
-- Saat `phase === "break"` dan toggle aktif → render `SocialBreakPanel` overlay split-screen 50/50:
-  - Kiri: timer & kontrol existing (compact).
-  - Kanan: tab Instagram / YouTube / TikTok / Facebook / LinkedIn.
-- **Implementasi panel kanan** (karena IG/TikTok/FB/LinkedIn memblokir iframe penuh):
-  - YouTube: embed iframe penuh (feed/subscriptions butuh login YT — tampilkan halaman home embed atau input channel).
-  - Lain-lain: tampilkan tombol "Buka di tab baru" + URL input untuk profil/feed favorit user. Tersimpan per-user (di `user_settings.social_links` jsonb) bila login, atau localStorage bila belum.
-- Panel auto-tutup saat break selesai.
+## 6. Social panel: emulator UI medsos
+- Resize `SocialBreakPanel`:
+  - Desktop: lebar = 1/3 viewport, tinggi mulai dari **bawah navbar** sampai bawah layar (top: `var(--nav-h, 64px)`), dock di kanan. Avatar/profile di header tetap terlihat karena tidak menutup navbar.
+  - Mobile: 1/3 tinggi layar dock di bawah, atau full-width 1/3 height; tetap tidak menutup header.
+- Saat aktif: geser kotak lain (Timer, Sticky, Media, AI) ke kiri dan kecilkan (skala 0.85 + translateX) lewat class `body[data-social-open=true]` + transisi.
+- Ganti isi panel jadi "emulator" tab/aplikasi:
+  - Tab bar atas dengan icon Instagram / YouTube / TikTok / Facebook / LinkedIn.
+  - Setiap tab merender UI **bawaan in-app** (komponen mock React yang menyerupai feed asli — bukan iframe situs aslinya): contoh stories+posts untuk IG, video card list untuk YouTube, vertical reels untuk TikTok, feed untuk FB, post list untuk LinkedIn. Data dummy lokal supaya tetap berjalan offline tanpa cors/login.
+  - Tambahkan tombol "Buka asli di tab baru" sebagai opsi sekunder.
+- File baru: `src/components/social/InstagramApp.tsx`, `YouTubeApp.tsx`, `TikTokApp.tsx`, `FacebookApp.tsx`, `LinkedInApp.tsx`. Semua pure presentational + i18n.
 
-## 6. Batas drag di desktop (navbar guard)
-- Di `StickyNotes.tsx` (dan komponen Media/AI box yang draggable), saat drag di **desktop** (`!isMobile`):
-  - Hitung tinggi header (mis. ref atau const `HEADER_HEIGHT = 72`).
-  - Clamp `y >= HEADER_HEIGHT` di handler pointer-move sehingga kotak tidak bisa ditarik ke atas navbar.
-- Tidak diterapkan di mobile (mobile pakai fullscreen sheet).
+## 7. HelpGuide: intro "Apa itu Bloomdoro"
+- Di atas list FAQ pada `HelpGuide.tsx`, tambahkan blok intro:
+  - Judul kecil + paragraf: "Bloomdoro adalah aplikasi Pomodoro …" lalu deskripsi singkat (fokus, istirahat, garden, AI, medsos break, kustomisasi).
+- Terjemahkan via key baru `guide_intro_title`, `guide_intro_body` untuk 5 bahasa.
 
 ---
 
 ## Bagian Teknis
 
-**File baru:**
-- `src/components/MobileTimerHeader.tsx`
-- `src/components/SocialBreakPanel.tsx`
-- `src/components/AvatarUpload.tsx` (kecil, dipakai di SettingsModal)
+**File baru**
+- `src/components/social/{InstagramApp,YouTubeApp,TikTokApp,FacebookApp,LinkedInApp}.tsx`
+- `src/components/FileActionBar.tsx`
 
-**File diedit:**
-- `src/pages/Index.tsx` — lift modal state, render MobileTimerHeader + SocialBreakPanel, teruskan `breakWithSocial` ke flow break.
-- `src/components/UserMenu.tsx` — ganti children jadi prop callbacks, jangan render modal anak.
-- `src/components/SettingsModal.tsx` — tambah section Akun (avatar + logout).
-- `src/components/TimerSetup.tsx` — tambah toggle "istirahat dengan medsos".
-- `src/components/StickyNotes.tsx` — clamp y di drag handler desktop.
-- `src/hooks/useAuth.tsx` — (opsional) expose helper refresh profile.
+**File diedit**
+- `src/pages/Index.tsx` — hapus pemakaian `MobileTimerHeader` di layout utama, set `data-social-open` di body, render `SocialBreakPanel` dock kanan.
+- `src/components/MobileAIChat.tsx` — animasi & timer header tetap (sudah ada), kecilkan animasi, sisipkan `FileActionBar`.
+- `src/components/SocialBreakPanel.tsx` — refactor jadi emulator tabs + sizing baru.
+- `src/components/TimerSetup.tsx` — toggle medsos jadi icon button + i18n.
+- `src/components/StickyNotes.tsx` (dan logic Media/AI box) — clamp 1/4 viewport.
+- `src/components/SettingsModal.tsx` — ganti hardcoded ke `t()`.
+- `src/components/HelpGuide.tsx` — tambah intro.
+- `src/lib/i18n.tsx` — tambah key baru untuk 5 bahasa.
+- `supabase/functions/process-file/index.ts` — tambah format konversi (docx, rtf, odt, epub, png) + validasi.
 
-**Migrations:**
-1. Buat bucket `avatars` public + storage policies (user CRUD folder sendiri, semua bisa SELECT).
-2. Tambah kolom `social_links jsonb` di `user_settings`.
+**Migrations**: tidak ada.
 
-**Catatan UX:**
-- Toggle "istirahat dengan medsos" hanya muncul jika break > 0.
-- SocialBreakPanel di mobile menumpuk vertikal (atas timer, bawah medsos) karena layar sempit.
-- Header mobile pakai `backdrop-blur` + transparan agar tidak menutup background user.
+**Catatan UX**
+- Saat `breakWithSocial` aktif & break dimulai → otomatis buka SocialBreakPanel; tutup otomatis saat break selesai.
+- Emulator menggunakan data dummy lokal (bukan API resmi) supaya tidak butuh login/izin.
+- Pada mobile, social panel tidak menggeser kotak lain (layar terlalu kecil); cukup overlay di 1/3 bawah.
