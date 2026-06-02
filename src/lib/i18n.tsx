@@ -31,6 +31,8 @@ export const T: Dict = {
   repeat: { id: "Repeat", en: "Repeat", ar: "تكرار", ja: "リピート", zh: "重复" },
   on: { id: "ON", en: "ON", ar: "تشغيل", ja: "オン", zh: "开" },
   off: { id: "OFF", en: "OFF", ar: "إيقاف", ja: "オフ", zh: "关" },
+  break_social_tip: { id: "Panel medsos otomatis terbuka saat istirahat", en: "Social panel auto-opens during break", ar: "تفتح لوحة التواصل تلقائيًا أثناء الاستراحة", ja: "休憩中にSNSパネルが自動で開きます", zh: "休息时社交面板自动打开" },
+  break_with_social: { id: "Istirahat dengan medsos", en: "Break with social media", ar: "استراحة مع التواصل", ja: "SNSと一緒に休憩", zh: "用社交媒体休息" },
 
   // Timer running
   focus_session: { id: "Sesi Fokus", en: "Focus Session", ar: "جلسة تركيز", ja: "集中セッション", zh: "专注会话" },
@@ -62,6 +64,18 @@ export const T: Dict = {
   youtube_link: { id: "Link YouTube", en: "YouTube Link", ar: "رابط يوتيوب", ja: "YouTubeリンク", zh: "YouTube 链接" },
   paste_youtube: { id: "Tempel URL YouTube...", en: "Paste YouTube URL...", ar: "الصق رابط يوتيوب...", ja: "YouTube URLを貼り付け...", zh: "粘贴 YouTube URL..." },
 
+  // Account
+  account: { id: "Akun", en: "Account", ar: "الحساب", ja: "アカウント", zh: "账户" },
+  logout: { id: "Keluar", en: "Sign out", ar: "تسجيل الخروج", ja: "ログアウト", zh: "退出" },
+  signin_register: { id: "Masuk / Daftar", en: "Sign in / Register", ar: "دخول / تسجيل", ja: "ログイン / 登録", zh: "登录 / 注册" },
+  not_logged_in: { id: "Belum login. Login untuk simpan data lintas perangkat.", en: "Not signed in. Sign in to sync data across devices.", ar: "لم تسجل الدخول بعد.", ja: "まだログインしていません。", zh: "未登录。" },
+  uploading: { id: "Mengunggah...", en: "Uploading...", ar: "جارٍ الرفع...", ja: "アップロード中...", zh: "上传中..." },
+  photo_updated: { id: "Foto profil diperbarui", en: "Profile photo updated", ar: "تم تحديث الصورة", ja: "プロフィール写真を更新しました", zh: "头像已更新" },
+  signed_out: { id: "Keluar berhasil", en: "Signed out", ar: "تم الخروج", ja: "ログアウトしました", zh: "已退出" },
+  change_photo: { id: "Ganti foto", en: "Change photo", ar: "تغيير الصورة", ja: "写真を変更", zh: "更换照片" },
+  login_first_for: { id: "tersedia setelah login", en: "available after sign in", ar: "متاح بعد تسجيل الدخول", ja: "ログイン後に利用可能", zh: "登录后可用" },
+  login_short: { id: "Masuk", en: "Sign in", ar: "دخول", ja: "ログイン", zh: "登录" },
+
   // FAB / sticky notes / AI
   sticky_note: { id: "Sticky Note", en: "Sticky Note", ar: "ملاحظة لاصقة", ja: "付箋", zh: "便签" },
   media: { id: "Media", en: "Media", ar: "وسائط", ja: "メディア", zh: "媒体" },
@@ -83,6 +97,16 @@ export const T: Dict = {
   copied: { id: "Tersalin", en: "Copied", ar: "تم النسخ", ja: "コピー済", zh: "已复制" },
   language_label: { id: "Bahasa", en: "Language", ar: "اللغة", ja: "言語", zh: "语言" },
 
+  // AI file actions
+  file_what_to_do: { id: "Apa yang ingin kamu lakukan dengan file ini?", en: "What would you like to do with this file?", ar: "ماذا تريد أن تفعل بهذا الملف؟", ja: "このファイルで何をしますか？", zh: "你想用这个文件做什么？" },
+  summarize: { id: "Ringkas", en: "Summarize", ar: "تلخيص", ja: "要約", zh: "总结" },
+  translate: { id: "Terjemahkan", en: "Translate", ar: "ترجمة", ja: "翻訳", zh: "翻译" },
+  explain: { id: "Jelaskan", en: "Explain", ar: "اشرح", ja: "説明", zh: "解释" },
+  convert_to: { id: "Konversi ke...", en: "Convert to...", ar: "تحويل إلى...", ja: "変換...", zh: "转换为..." },
+  pick_format: { id: "Pilih format target", en: "Pick target format", ar: "اختر الصيغة", ja: "形式を選択", zh: "选择格式" },
+  converting: { id: "Mengonversi...", en: "Converting...", ar: "جارٍ التحويل...", ja: "変換中...", zh: "转换中..." },
+  download_ready: { id: "Siap diunduh", en: "Ready to download", ar: "جاهز للتنزيل", ja: "ダウンロード可能", zh: "可下载" },
+
   // Chat history
   ai_history_title: { id: "Riwayat Talk with AI", en: "AI Talk History", ar: "سجل المحادثة", ja: "AIチャット履歴", zh: "AI 对话历史" },
   no_history: { id: "Belum ada percakapan tersimpan.", en: "No saved conversations yet.", ar: "لا توجد محادثات.", ja: "保存された会話はまだありません。", zh: "还没有保存的对话。" },
@@ -92,6 +116,20 @@ export const T: Dict = {
   // Help guide
   guide_title: { id: "Panduan Bloomdoro", en: "Bloomdoro Guide", ar: "دليل Bloomdoro", ja: "Bloomdoroガイド", zh: "Bloomdoro 指南" },
   guide_subtitle: { id: "Pertanyaan umum & panduan singkat menggunakan aplikasi.", en: "Common questions & a short app guide.", ar: "أسئلة شائعة ودليل قصير.", ja: "よくある質問と簡単なガイド。", zh: "常见问题和简短指南。" },
+  guide_intro_title: {
+    id: "Apa itu Bloomdoro?",
+    en: "What is Bloomdoro?",
+    ar: "ما هو Bloomdoro؟",
+    ja: "Bloomdoroとは？",
+    zh: "什么是 Bloomdoro？",
+  },
+  guide_intro_body: {
+    id: "Bloomdoro adalah aplikasi Pomodoro yang membantumu fokus lewat siklus kerja dan istirahat singkat. Setiap sesi fokus yang selesai menumbuhkan bunga atau menerbangkan roket — dan mengisi Garden-mu. Tambahkan musik, ambient sound, sticky notes, media, AI pendamping, dan saat istirahat kamu bisa nyalakan panel medsos sebagai jeda santai. Semua tersinkron jika kamu login.",
+    en: "Bloomdoro is a Pomodoro app that helps you focus through short cycles of work and rest. Every completed focus session grows a flower or launches a rocket — and fills your Garden. Add music, ambient sounds, sticky notes, media, an AI companion, and during breaks you can toggle the social panel for a relaxed pause. Everything syncs when you sign in.",
+    ar: "Bloomdoro هو تطبيق بومودورو يساعدك على التركيز عبر دورات قصيرة من العمل والراحة. كل جلسة مكتملة تُنمي زهرة أو تُطلق صاروخًا وتملأ حديقتك. أضف الموسيقى، الأصوات، الملاحظات، الوسائط، ورفيق الذكاء الاصطناعي. أثناء الاستراحة يمكنك تشغيل لوحة التواصل الاجتماعي.",
+    ja: "Bloomdoroは、短い作業と休憩のサイクルで集中をサポートするポモドーロアプリです。完了したセッションごとに花が咲き、ロケットが飛び、ガーデンが満たされます。音楽、環境音、付箋、メディア、AIコンパニオン、そして休憩中はSNSパネルも切り替え可能。ログインすればすべて同期されます。",
+    zh: "Bloomdoro 是一款帮助你通过短暂的工作与休息周期集中注意力的番茄钟应用。每完成一次专注会话都会生长一朵花或发射一枚火箭，并填满你的花园。可添加音乐、环境声、便签、媒体和 AI 伙伴；休息时还可打开社交面板放松。登录后全部同步。",
+  },
   contact_suggest: {
     id: "Hubungi jika ada saran: attayaarkarna12@gmail.com",
     en: "Contact for suggestions: attayaarkarna12@gmail.com",
@@ -106,6 +144,15 @@ export const T: Dict = {
     ja: "イースターエッグがここに…",
     zh: "彩蛋藏在这里…",
   },
+
+  // Social
+  social_open_original: { id: "Buka aplikasi asli", en: "Open original app", ar: "افتح التطبيق الأصلي", ja: "本物のアプリを開く", zh: "打开原应用" },
+  social_panel: { id: "Medsos Istirahat", en: "Break Social", ar: "تواصل الاستراحة", ja: "休憩SNS", zh: "休息社交" },
+  toggle_social: { id: "Aktifkan medsos saat istirahat", en: "Enable social during break", ar: "تفعيل التواصل أثناء الاستراحة", ja: "休憩中にSNSを有効化", zh: "休息时启用社交" },
+
+  // Mobile header
+  focus_short: { id: "Fokus", en: "Focus", ar: "تركيز", ja: "集中", zh: "专注" },
+  break_short: { id: "Istirahat", en: "Break", ar: "استراحة", ja: "休憩", zh: "休息" },
 };
 
 interface LangCtx {
