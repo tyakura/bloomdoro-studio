@@ -111,7 +111,7 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
   }, []);
 
 
-  // Drag (clamps below the app header on desktop)
+  // Drag (clamps so max 1/4 of element can leave each side; top clamped below the app header on desktop)
   const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
     e.preventDefault();
     const el = (e.target as HTMLElement).closest("[data-note-id]") as HTMLElement;
@@ -121,10 +121,20 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     const isDesktop = window.matchMedia("(min-width: 768px)").matches;
     const header = document.querySelector("[data-app-header]") as HTMLElement | null;
     const minY = isDesktop ? (header ? header.getBoundingClientRect().bottom + 4 : 80) : 0;
+    const elW = rect.width;
+    const elH = rect.height;
     const onMove = (ev: PointerEvent) => {
       const d = dragRef.current; if (!d) return;
-      const nextX = ev.clientX - d.offsetX;
-      const nextY = Math.max(minY, ev.clientY - d.offsetY);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let nextX = ev.clientX - d.offsetX;
+      let nextY = Math.max(minY, ev.clientY - d.offsetY);
+      // Limit each side to at most 1/4 of element off-screen
+      const minX = -elW / 4;
+      const maxX = vw - (elW * 3) / 4;
+      const maxY = vh - (elH * 3) / 4;
+      nextX = Math.min(Math.max(minX, nextX), maxX);
+      nextY = Math.min(nextY, maxY);
       setNotes(prev => prev.map(n => n.id === d.id ? { ...n, x: nextX, y: nextY } : n));
     };
     const onUp = () => { dragRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
@@ -145,6 +155,7 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     const onUp = () => { resizeRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
     window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
   }, []);
+
 
   const deleteNote = (id: string) => setNotes(prev => prev.filter(n => n.id !== id));
 

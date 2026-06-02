@@ -51,6 +51,15 @@ export function HelpGuide() {
             <DialogDescription>{t("guide_subtitle")}</DialogDescription>
           </DialogHeader>
 
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 mt-1">
+            <h3 className="font-display font-bold text-sm text-foreground mb-1.5">
+              {t("guide_intro_title")}
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {t("guide_intro_body")}
+            </p>
+          </div>
+
           <div className="space-y-3 mt-2">
             {FAQ.map(({ icon: Icon, q, a, requiresLogin }, i) => {
               const locked = requiresLogin && !user;
