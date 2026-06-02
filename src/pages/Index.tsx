@@ -340,6 +340,8 @@ const Index = () => {
           </div>
         )}
       </main>
+      </div>
+
 
       {isMobile && mobileAIOpen && (
         <MobileAIChat
