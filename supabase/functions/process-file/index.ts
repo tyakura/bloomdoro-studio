@@ -84,19 +84,50 @@ Deno.serve(async (req) => {
     if (action === "convert") {
       if (!text) throw new Error("text required");
       const t = title || "document";
+      const fmt = (format || "txt").toLowerCase();
+      const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!));
       let blob: Uint8Array;
       let mime: string;
       let ext: string;
-      if (format === "txt") { blob = new TextEncoder().encode(text); mime = "text/plain"; ext = "txt"; }
-      else if (format === "md") { blob = new TextEncoder().encode(text); mime = "text/markdown"; ext = "md"; }
-      else if (format === "html" || format === "pdf") {
-        const html = buildPdfHtml(text, t);
-        blob = new TextEncoder().encode(html);
-        mime = format === "pdf" ? "text/html" : "text/html"; // browser-printable HTML
-        ext = "html";
-      } else {
-        throw new Error("Unsupported format. Use txt, md, html.");
+      if (fmt === "txt") { blob = new TextEncoder().encode(text); mime = "text/plain"; ext = "txt"; }
+      else if (fmt === "md") { blob = new TextEncoder().encode(text); mime = "text/markdown"; ext = "md"; }
+      else if (fmt === "json") { blob = new TextEncoder().encode(JSON.stringify({ title: t, content: text }, null, 2)); mime = "application/json"; ext = "json"; }
+      else if (fmt === "csv") { blob = new TextEncoder().encode(text.split("\n").map(l => `"${l.replace(/"/g, '""')}"`).join("\n")); mime = "text/csv"; ext = "csv"; }
+      else if (fmt === "html" || fmt === "pdf") {
+        blob = new TextEncoder().encode(buildPdfHtml(text, t));
+        mime = "text/html"; ext = "html";
       }
+      else if (fmt === "rtf") {
+        const rtf = `{\\rtf1\\ansi\\deff0\n{\\fonttbl{\\f0 Helvetica;}}\n\\f0\\fs22 ${text.replace(/\\/g, "\\\\").replace(/\n/g, "\\par\n")}\n}`;
+        blob = new TextEncoder().encode(rtf); mime = "application/rtf"; ext = "rtf";
+      }
+      else if (fmt === "doc" || fmt === "docx") {
+        // Word-compatible HTML (.doc opens in Word)
+        const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset="utf-8"><title>${esc(t)}</title></head><body><h1>${esc(t)}</h1><pre style="font-family:Calibri,sans-serif;white-space:pre-wrap">${esc(text)}</pre></body></html>`;
+        blob = new TextEncoder().encode(html);
+        mime = "application/msword"; ext = fmt === "docx" ? "doc" : "doc";
+      }
+      else if (fmt === "xml") {
+        blob = new TextEncoder().encode(`<?xml version="1.0" encoding="UTF-8"?>\n<document><title>${esc(t)}</title><body>${esc(text)}</body></document>`);
+        mime = "application/xml"; ext = "xml";
+      }
+      else if (fmt === "epub") {
+        // Minimal EPUB-style HTML fallback
+        const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(t)}</title></head><body><h1>${esc(t)}</h1><div style="white-space:pre-wrap">${esc(text)}</div></body></html>`;
+        blob = new TextEncoder().encode(html);
+        mime = "text/html"; ext = "html";
+      }
+      else {
+        throw new Error("Unsupported format. Use: txt, md, html, pdf, rtf, doc, docx, json, csv, xml, epub.");
+      }
+      const b64 = btoa(String.fromCharCode(...blob));
+      return new Response(JSON.stringify({
+        fileName: `${t}.${ext}`,
+        mime,
+        dataUrl: `data:${mime};base64,${b64}`,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
       // Return base64 + filename for client to download
       const b64 = btoa(String.fromCharCode(...blob));
       return new Response(JSON.stringify({
