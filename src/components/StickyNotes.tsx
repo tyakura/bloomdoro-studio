@@ -221,12 +221,41 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     setNotes(prev => prev.map(n => n.id === id && n.type === "ai" ? { ...n, mode } : n));
   };
 
+  const deleteAll = () => {
+    if (notes.length === 0) return;
+    if (window.confirm(t("confirm_delete_all"))) {
+      setNotes([]);
+      setSelectedId(null);
+    }
+  };
+
+  // Clear selection when clicking outside any note
+  useEffect(() => {
+    const onDocDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-note-id]") && !target.closest("[data-keep-selection]")) {
+        setSelectedId(null);
+      }
+    };
+    window.addEventListener("pointerdown", onDocDown);
+    return () => window.removeEventListener("pointerdown", onDocDown);
+  }, []);
+
+  const SOCIAL_FAB: { id: SocialPlatform; icon: any; color: string }[] = [
+    { id: "instagram", icon: Instagram, color: "#e1306c" },
+    { id: "tiktok", icon: Music2, color: "#000000" },
+    { id: "youtube", icon: Youtube, color: "#ff0000" },
+    { id: "facebook", icon: Facebook, color: "#1877f2" },
+    { id: "linkedin", icon: Linkedin, color: "#0a66c2" },
+  ];
+
   return (
     <>
       {notes.map(note => (
         <NoteCard
           key={note.id}
           note={note}
+          selected={selectedId === note.id}
           onPointerDown={handlePointerDown}
           onDelete={deleteNote}
           onResizeDown={handleResizeDown}
@@ -238,16 +267,48 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
       {creating === "sticky" && <StickyCreator today={today} onClose={() => setCreating(null)} onSave={addStickyNote} />}
       {creating === "media" && <MediaCreator onClose={() => setCreating(null)} onSave={(u, k) => { addMediaNote(u, k); setCreating(null); }} />}
 
+      {/* Delete All button (bottom center) */}
+      {notes.length > 0 && (
+        <button
+          data-keep-selection
+          onClick={deleteAll}
+          title={t("delete_all")}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[55] flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl bg-card border border-border shadow-lg hover:bg-destructive hover:text-destructive-foreground transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span className="text-[10px] font-medium">{t("delete_all")}</span>
+        </button>
+      )}
+
       {/* FAB menu */}
       {menuOpen && (
-        <div className="fixed bottom-24 right-6 z-[55] flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2">
+        <div data-keep-selection className="fixed bottom-24 right-6 z-[55] flex flex-col gap-2 items-end animate-in fade-in slide-in-from-bottom-2">
           <FabItem icon={StickyIcon} label={t("sticky_note")} onClick={() => { setCreating("sticky"); setMenuOpen(false); }} />
           <FabItem icon={ImageIcon} label={t("media")} onClick={() => { setCreating("media"); setMenuOpen(false); }} />
           <FabItem icon={Sparkles} label={t("talk_with_ai")} badge={t("new_badge")} onClick={() => { if (onTalkWithAI) onTalkWithAI(); else addAiNote(); setMenuOpen(false); }} />
+          <FabItem icon={Share2} label={t("social_label")} onClick={() => setSocialOpen(o => !o)} />
+          {socialOpen && (
+            <div className="flex gap-1.5 pr-1 pb-1 animate-in fade-in slide-in-from-right-2">
+              {SOCIAL_FAB.map(({ id, icon: Icon, color }) => (
+                <button
+                  key={id}
+                  onClick={() => { openSocialPopup(id); setSocialOpen(false); setMenuOpen(false); }}
+                  title={t("break_with_social_tip")}
+                  aria-label={t("break_with_social_tip")}
+                  className="w-9 h-9 rounded-full bg-card border border-border shadow-md flex items-center justify-center transition-all hover:scale-110 hover:text-white"
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       <button
+        data-keep-selection
         onClick={() => setMenuOpen(o => !o)}
         className="fixed bottom-6 right-6 z-[56] w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl flex items-center justify-center transition-all hover:scale-110"
         style={{ transform: menuOpen ? "rotate(45deg)" : undefined }}
