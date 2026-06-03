@@ -803,7 +803,7 @@ function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onU
   return (
     <div
       data-note-id={note.id}
-      className="fixed z-40 rounded-2xl shadow-xl bg-card border-2 border-primary/30 select-none flex flex-col overflow-hidden"
+      className={`fixed z-40 rounded-2xl shadow-xl bg-card border-2 border-primary/30 select-none flex flex-col overflow-hidden ${selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background outline-dashed outline-2 outline-primary outline-offset-2" : ""}`}
       style={{ left: note.x, top: note.y, width: note.width, height: note.height }}
     >
       {/* Header (drag handle) */}
