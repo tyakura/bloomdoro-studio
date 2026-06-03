@@ -669,8 +669,9 @@ function parseSources(content: string): { body: string; sources: { title: string
 }
 
 // ============ AI chat note ============
-function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
+function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
   note: AiNote;
+  selected?: boolean;
   onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
   onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
