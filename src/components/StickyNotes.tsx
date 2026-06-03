@@ -122,6 +122,15 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     if (!el) return;
     const rect = el.getBoundingClientRect();
     dragRef.current = { id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+
+    // Long-press to select (2s)
+    if (pressRef.current?.timer) window.clearTimeout(pressRef.current.timer);
+    const timer = window.setTimeout(() => {
+      const p = pressRef.current;
+      if (p && !p.moved) setSelectedId(p.id);
+    }, 2000);
+    pressRef.current = { id, timer, startX: e.clientX, startY: e.clientY, moved: false };
+
     const isDesktop = window.matchMedia("(min-width: 768px)").matches;
     const header = document.querySelector("[data-app-header]") as HTMLElement | null;
     const minY = isDesktop ? (header ? header.getBoundingClientRect().bottom + 4 : 80) : 0;
@@ -129,11 +138,19 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     const elH = rect.height;
     const onMove = (ev: PointerEvent) => {
       const d = dragRef.current; if (!d) return;
+      const p = pressRef.current;
+      if (p) {
+        const dx = ev.clientX - p.startX;
+        const dy = ev.clientY - p.startY;
+        if (Math.hypot(dx, dy) > 5) {
+          p.moved = true;
+          window.clearTimeout(p.timer);
+        }
+      }
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       let nextX = ev.clientX - d.offsetX;
       let nextY = Math.max(minY, ev.clientY - d.offsetY);
-      // Limit each side to at most 1/4 of element off-screen
       const minX = -elW / 4;
       const maxX = vw - (elW * 3) / 4;
       const maxY = vh - (elH * 3) / 4;
@@ -141,7 +158,13 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
       nextY = Math.min(nextY, maxY);
       setNotes(prev => prev.map(n => n.id === d.id ? { ...n, x: nextX, y: nextY } : n));
     };
-    const onUp = () => { dragRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
+    const onUp = () => {
+      dragRef.current = null;
+      if (pressRef.current?.timer) window.clearTimeout(pressRef.current.timer);
+      pressRef.current = null;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
     window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
   }, []);
 
