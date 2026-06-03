@@ -539,19 +539,19 @@ function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: 
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
       <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg font-bold text-foreground">Media Baru</h2>
+          <h2 className="font-display text-lg font-bold text-foreground">{t("new_media")}</h2>
           <button onClick={onClose}><X className="w-4 h-4 text-muted-foreground" /></button>
         </div>
         <div className="space-y-3">
           <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleFile} className="hidden" />
           <Button onClick={() => fileRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
-            <Upload className="w-4 h-4" /> Upload gambar / video
+            <Upload className="w-4 h-4" /> {t("upload_image_video")}
           </Button>
           <div className="flex gap-2">
-            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL YouTube / gambar / video..." />
+            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t("paste_media_url")} />
             <Button onClick={handleUrl} disabled={!url.trim()}>OK</Button>
           </div>
-          <p className="text-xs text-muted-foreground">Mendukung YouTube, .mp4/.webm, dan gambar. Drag header untuk pindah, tarik pojok kanan-bawah untuk memperbesar.</p>
+          <p className="text-xs text-muted-foreground">{t("media_help")}</p>
         </div>
       </div>
     </div>
