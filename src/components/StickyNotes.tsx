@@ -337,8 +337,9 @@ function FabItem({ icon: Icon, label, onClick, badge }: { icon: any; label: stri
 }
 
 // ============ Note Card renderer ============
-function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
+function NoteCard({ note, selected, onPointerDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
   note: AnyNote;
+  selected?: boolean;
   onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
   onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
@@ -346,6 +347,7 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
   onAiModeChange: (id: string, mode: ChatMode) => void;
 }) {
   const baseStyle: React.CSSProperties = { left: note.x, top: note.y, width: note.width, height: note.height || undefined };
+  const selectedRing = selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background outline-dashed outline-2 outline-primary outline-offset-2" : "";
 
   if (note.type === "sticky") {
     let cls = "border-2";
@@ -359,7 +361,7 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
     return (
       <div
         data-note-id={note.id}
-        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none touch-none ${cls}`}
+        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none touch-none ${cls} ${selectedRing}`}
         style={style}
         onPointerDown={(e) => onPointerDown(e, note.id)}
       >
@@ -377,7 +379,7 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
     return (
       <div
         data-note-id={note.id}
-        className="fixed z-40 rounded-lg shadow-lg overflow-hidden bg-card border-2 border-border select-none"
+        className={`fixed z-40 rounded-lg shadow-lg overflow-hidden bg-card border-2 border-border select-none ${selectedRing}`}
         style={baseStyle}
       >
         <div
@@ -407,7 +409,8 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
 
   // AI
   return (
-    <AiChatNote note={note} onPointerDown={onPointerDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
+    <AiChatNote note={note} selected={selected} onPointerDown={onPointerDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
+
   );
 }
 
