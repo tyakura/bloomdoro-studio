@@ -7,23 +7,23 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useLang } from "@/lib/i18n";
+import { useLang, T } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 
-const FAQ: { icon: any; q: string; a: string; requiresLogin?: boolean }[] = [
-  { icon: Timer, q: "Bagaimana cara memulai sesi fokus?", a: "Atur durasi fokus & istirahat, pilih tema (bunga/roket), lalu klik play." },
-  { icon: Repeat, q: "Apa fungsi mode Repeat?", a: "Mengulang sesi fokus & istirahat otomatis sampai kamu klik Hentikan." },
-  { icon: Flower2, q: "Bagaimana cara mengisi Garden?", a: "Setiap sesi fokus selesai dengan tema bunga, satu bunga ditambahkan (maks 20)." },
-  { icon: Languages, q: "Bagaimana ganti bahasa?", a: "Profil → Settings → Bahasa: Indonesia, English, Arab, Jepang, China. Semua teks UI & sapaan AI ikut berubah." },
-  { icon: Music, q: "Cara menambah musik & ambient?", a: "Profil → Settings → Upload musik atau tempel link YouTube (klik Go). Ambient sound juga di Settings.", requiresLogin: true },
-  { icon: Plus, q: "Apa isi tombol + di pojok kanan bawah?", a: "Sticky Note, Media (gambar/video draggable), dan Talk with AI." },
-  { icon: StickyNote, q: "Cara membuat sticky note?", a: "+ → Sticky Note. Isi judul/deskripsi, pilih warna, drag ke posisinya." },
-  { icon: ImageIcon, q: "Apa itu Media note?", a: "+ → Media. Tempel YouTube/file/URL. Drag header untuk pindah, pojok kanan-bawah untuk resize." },
-  { icon: Sparkles, q: "Apa itu Talk with AI?", a: "Pilih mode Talk (singkat), Riset (analisis + link referensi), atau Coding (kode + tombol salin). Shift+Enter untuk baris baru, Enter untuk kirim. Riwayat di Profil → Riwayat AI — kamu bisa Lanjutkan mengobrol.", requiresLogin: true },
-  { icon: Settings, q: "Background gambar/video & efek kaca?", a: "Profil → Settings → Background. Upload atau tempel URL (gambar/video/YouTube), klik Go. Atur Overlay, Glass, dan suara background.", requiresLogin: true },
-  { icon: Rocket, q: "Beda tema bunga & roket?", a: "Bunga tumbuh perlahan; roket menyalakan api lalu terbang ke bulan dan berhenti di sana." },
-  { icon: Sparkles, q: "Data saya hilang kalau refresh?", a: "Tidak. Sticky note, media, background gambar, garden, bahasa & sesi tersimpan otomatis (hingga 10 MB di browser). Dengan login, data juga sinkron lintas perangkat.", requiresLogin: true },
+const FAQ: { icon: any; qKey: keyof typeof T; aKey: keyof typeof T; requiresLogin?: boolean }[] = [
+  { icon: Timer, qKey: "faq_q1", aKey: "faq_a1" },
+  { icon: Repeat, qKey: "faq_q2", aKey: "faq_a2" },
+  { icon: Flower2, qKey: "faq_q3", aKey: "faq_a3" },
+  { icon: Languages, qKey: "faq_q4", aKey: "faq_a4" },
+  { icon: Music, qKey: "faq_q5", aKey: "faq_a5", requiresLogin: true },
+  { icon: Plus, qKey: "faq_q6", aKey: "faq_a6" },
+  { icon: StickyNote, qKey: "faq_q7", aKey: "faq_a7" },
+  { icon: ImageIcon, qKey: "faq_q8", aKey: "faq_a8" },
+  { icon: Sparkles, qKey: "faq_q9", aKey: "faq_a9", requiresLogin: true },
+  { icon: Settings, qKey: "faq_q10", aKey: "faq_a10", requiresLogin: true },
+  { icon: Rocket, qKey: "faq_q11", aKey: "faq_a11" },
+  { icon: Sparkles, qKey: "faq_q12", aKey: "faq_a12", requiresLogin: true },
 ];
 
 export function HelpGuide() {
@@ -61,7 +61,7 @@ export function HelpGuide() {
           </div>
 
           <div className="space-y-3 mt-2">
-            {FAQ.map(({ icon: Icon, q, a, requiresLogin }, i) => {
+            {FAQ.map(({ icon: Icon, qKey, aKey, requiresLogin }, i) => {
               const locked = requiresLogin && !user;
               return (
                 <div key={i} className={`relative rounded-lg border border-border bg-card/50 p-3 transition-colors ${locked ? "opacity-70" : "hover:bg-card"}`}>
@@ -71,17 +71,17 @@ export function HelpGuide() {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-sm text-foreground mb-1 flex items-center gap-1.5">
-                        {q}
+                        {t(qKey)}
                         {locked && <Lock className="w-3 h-3 text-muted-foreground" />}
                       </h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{a}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{t(aKey)}</p>
                       {locked && (
                         <Link
                           to="/auth"
                           onClick={() => setOpen(false)}
                           className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-medium hover:bg-primary/90"
                         >
-                          <LogIn className="w-3 h-3" /> Login dahulu
+                          <LogIn className="w-3 h-3" /> {t("login_first")}
                         </Link>
                       )}
                     </div>
@@ -90,7 +90,6 @@ export function HelpGuide() {
               );
             })}
 
-            {/* Contact + easter egg hint at the bottom — no box, no icon, thin text */}
             <div className="pt-4 mt-2 space-y-1.5 text-center">
               <p className="text-[11px] text-muted-foreground">{t("contact_suggest")}</p>
               <p className="text-[11px] italic text-muted-foreground" style={{ opacity: 0.3 }}>

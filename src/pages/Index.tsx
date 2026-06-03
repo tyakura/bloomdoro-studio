@@ -214,7 +214,7 @@ const Index = () => {
             displayName={profile?.display_name}
             onOpenSettings={() => setSettingsOpen(true)}
             onOpenGarden={() => setGardenOpen(true)}
-            onOpenHistory={() => user ? setHistoryOpen(true) : toast.info("Login dulu untuk lihat riwayat AI")}
+            onOpenHistory={() => user ? setHistoryOpen(true) : toast.info(t("login_for_history"))}
           />
         </div>
       </header>
