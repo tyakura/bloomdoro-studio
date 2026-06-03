@@ -80,9 +80,12 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
   const { t } = useLang();
   const [notes, setNotes] = useState<AnyNote[]>(() => loadJSON<AnyNote[]>(NOTES_KEY, []));
   const [menuOpen, setMenuOpen] = useState(false);
+  const [socialOpen, setSocialOpen] = useState(false);
   const [creating, setCreating] = useState<NoteType | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
   const resizeRef = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number } | null>(null);
+  const pressRef = useRef<{ id: string; timer: number; startX: number; startY: number; moved: boolean } | null>(null);
 
   const today = new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
 
