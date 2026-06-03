@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText } from "lucide-react";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText, Trash2, Instagram, Youtube, Music2, Facebook, Linkedin, Share2 } from "lucide-react";
+import { openSocialPopup, SocialPlatform } from "@/lib/socialPopup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
