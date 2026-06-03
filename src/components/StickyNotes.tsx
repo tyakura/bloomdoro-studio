@@ -689,6 +689,8 @@ function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onU
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const startedAt = useRef<number>(Date.now());
+  const [pendingPdf, setPendingPdf] = useState<{ file: File; dataUrl: string } | null>(null);
+  const [pdfFormat, setPdfFormat] = useState<string>("docx");
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -708,10 +710,50 @@ function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onU
 
   const handleFiles = async (files: FileList | null) => {
     if (!files?.length) return;
-    const converted = await Promise.all(Array.from(files).slice(0, 4).map(fileToAttachment));
+    const arr = Array.from(files);
+    // If a PDF is among the picked files, stage the first one for conversion
+    const pdf = arr.find(f => f.type === "application/pdf" || /\.pdf$/i.test(f.name));
+    if (pdf) {
+      const dataUrl = await new Promise<string>((res, rej) => {
+        const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(pdf);
+      });
+      setPendingPdf({ file: pdf, dataUrl });
+      setAttachOpen(false);
+      return;
+    }
+    const converted = await Promise.all(arr.slice(0, 4).map(fileToAttachment));
     setAttachments(prev => [...prev, ...converted].slice(0, 6));
     setAttachOpen(false);
   };
+
+  const convertPdf = async () => {
+    if (!pendingPdf || loading) return;
+    setLoading(true);
+    const userMsg: ChatMsg = { role: "user", content: `📎 ${pendingPdf.file.name} → .${pdfFormat}` };
+    let msgs: ChatMsg[] = [...note.messages, userMsg];
+    onUpdate(note.id, msgs);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const ext = await supabase.functions.invoke("process-file", {
+        body: { action: "extract", fileName: pendingPdf.file.name, fileType: pendingPdf.file.type, dataUrl: pendingPdf.dataUrl },
+      });
+      if (ext.error) throw ext.error;
+      const conv = await supabase.functions.invoke("process-file", {
+        body: { action: "convert", text: ext.data?.text || "", format: pdfFormat, title: pendingPdf.file.name.replace(/\.[^.]+$/, "") },
+      });
+      if (conv.error) throw conv.error;
+      const a = document.createElement("a");
+      a.href = conv.data.dataUrl; a.download = conv.data.fileName; a.click();
+      msgs = [...msgs, { role: "assistant", content: `✅ ${t("download_ready")}: **${conv.data.fileName}**` }];
+      onUpdate(note.id, msgs);
+      setPendingPdf(null);
+    } catch (e: any) {
+      onUpdate(note.id, [...msgs, { role: "assistant", content: `❌ ${e.message || "Failed"}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const send = async () => {
     if ((!input.trim() && attachments.length === 0) || loading) return;
