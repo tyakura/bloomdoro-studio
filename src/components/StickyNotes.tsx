@@ -495,6 +495,7 @@ function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () 
 
 // ============ Media creator ============
 function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: string, kind: "image" | "video" | "youtube") => void }) {
+  const { t } = useLang();
   const [url, setUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
