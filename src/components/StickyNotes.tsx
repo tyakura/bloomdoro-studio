@@ -923,6 +923,28 @@ function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onU
 
       {/* Input */}
       <div className="p-2 bg-background/50">
+        {pendingPdf && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2">
+            <FileText className="w-4 h-4 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-muted-foreground truncate">{t("pdf_detected")}</p>
+              <p className="text-xs font-medium truncate">{pendingPdf.file.name}</p>
+            </div>
+            <select
+              value={pdfFormat}
+              onChange={(e) => setPdfFormat(e.target.value)}
+              className="text-[11px] rounded-md border border-border bg-background px-1.5 py-1"
+            >
+              <option value="docx">{t("fmt_word")}</option>
+              <option value="txt">{t("fmt_text")}</option>
+              <option value="md">{t("fmt_md")}</option>
+              <option value="html">{t("fmt_html")}</option>
+            </select>
+            <button onClick={() => setPendingPdf(null)} className="p-1 rounded-full hover:bg-background">
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1.5">
             {attachments.map((a, i) => (
@@ -942,7 +964,7 @@ function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onU
           {attachOpen && (
             <div className="absolute bottom-12 left-0 z-10 w-44 rounded-lg border border-border bg-card p-1 shadow-lg">
               <button onClick={() => fileRef.current?.click()} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
-                <Paperclip className="h-3.5 w-3.5" /> File / gambar / audio
+                <Paperclip className="h-3.5 w-3.5" /> File / image / audio
               </button>
               <button onClick={() => exportChatToPdf(note.messages)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
                 <FileText className="h-3.5 w-3.5" /> Export PDF
@@ -956,13 +978,13 @@ function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onU
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={note.mode === "coding" ? t("type_code") : note.mode === "riset" ? t("type_research") : t("type_message")}
-          disabled={loading}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); pendingPdf ? convertPdf() : send(); } }}
+          placeholder={pendingPdf ? t("convert_and_send") : (note.mode === "coding" ? t("type_code") : note.mode === "riset" ? t("type_research") : t("type_message"))}
+          disabled={loading || !!pendingPdf}
           rows={1}
           className="text-sm min-h-[40px] max-h-[120px] resize-none"
         />
-        <Button size="icon" onClick={send} disabled={loading || (!input.trim() && attachments.length === 0)}>
+        <Button size="icon" onClick={() => pendingPdf ? convertPdf() : send()} disabled={loading || (!pendingPdf && !input.trim() && attachments.length === 0)} title={pendingPdf ? t("convert_and_send") : undefined}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </Button>
         </div>
