@@ -438,6 +438,7 @@ function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.PointerEvent) =>
 
 // ============ Sticky creator ============
 function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () => void; onSave: (n: any) => void }) {
+  const { t } = useLang();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedColor, setSelectedColor] = useState(0);
@@ -455,19 +456,19 @@ function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () 
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
       <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg font-bold text-foreground">Sticky Note Baru</h2>
+          <h2 className="font-display text-lg font-bold text-foreground">{t("new_sticky")}</h2>
           <span className="text-xs text-muted-foreground">{today}</span>
         </div>
         <div className="space-y-3">
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul..." className="font-semibold" />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("title_placeholder")} className="font-semibold" />
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Deskripsi... (Enter untuk baris baru / list)"
+            placeholder={t("desc_placeholder")}
             rows={5}
           />
           <div>
-            <span className="text-xs text-muted-foreground mb-2 block">Warna</span>
+            <span className="text-xs text-muted-foreground mb-2 block">{t("color")}</span>
             <div className="flex items-center gap-2">
               {COLOR_SWATCHES.map((s, i) => (
                 <button key={i} onClick={() => { setSelectedColor(i); setShowCP(false); }}
@@ -483,8 +484,8 @@ function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () 
             {showCP && <input type="color" value={customColor} onChange={(e) => setCustomColor(e.target.value)} className="mt-2 w-full h-10 rounded-lg cursor-pointer border border-border" />}
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleSave} className="flex-1" disabled={!title.trim()}>Done</Button>
-            <Button onClick={onClose} variant="outline" className="flex-1">Batal</Button>
+            <Button onClick={handleSave} className="flex-1" disabled={!title.trim()}>{t("done")}</Button>
+            <Button onClick={onClose} variant="outline" className="flex-1">{t("cancel")}</Button>
           </div>
         </div>
       </div>
