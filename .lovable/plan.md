@@ -1,75 +1,78 @@
-# Rencana Perubahan
+# Plan
 
-## 1. Mobile: Live preview hanya saat Talk with AI
-- `MobileTimerHeader` saat ini selalu muncul di mobile saat focus/break. Ubah agar hanya muncul saat `MobileAIChat` terbuka (live preview ada di header chat).
-- Hapus `MobileTimerHeader` dari layout utama mobile; pindahkan / pastikan animasi (bunga/roket) hanya tampil di header `MobileAIChat`.
-- Perkecil animasi bunga/roket lebih jauh (scale ~0.35 + max-width clamp) supaya muat di header 25vh tanpa overflow horizontal. Tambah `overflow-hidden` dan `flex-shrink`.
+## 1. Social media shortcuts (FAB + Break card)
 
-## 2. Settings: terjemahkan teks yang masih Indonesia
-- Audit `SettingsModal.tsx` (label "Akun", "Bahasa", "Background", "Musik", "Ambient", "Overlay", "Glass", "Keluar", "Upload", placeholder URL, tombol Go, dll) dan ganti hardcoded string ke `t("...")`.
-- Tambah key baru di `src/lib/i18n.tsx` untuk semua bahasa: id, en, ar, ja, zh. Lakukan hal sama untuk `TimerSetup` (toggle "Istirahat dengan medsos?"), `UserMenu`, `SocialBreakPanel`, `MobileAIChat` (placeholder, tombol).
+Goal: open Instagram / TikTok / YouTube in a slim floating popup (`window.open(url, '_blank', 'popup=yes,width=450,height=750')`), since most sites block iframe embedding.
 
-## 3. AI: Upload file → tanya tujuan + konversi banyak format
-- Saat user upload file di `MobileAIChat` dan AI box desktop:
-  - Setelah ekstraksi sukses, tampilkan pesan asisten + grid tombol aksi: Ringkas, Terjemahkan, Jelaskan, Konversi ke …, Tanya bebas.
-  - Klik "Konversi ke …" memunculkan picker format target tergantung sumber:
-    - PDF → DOCX, TXT, MD, HTML, RTF, ODT, EPUB, gambar (PNG per page)
-    - DOCX → PDF, TXT, MD, HTML, RTF, ODT
-    - Image → PDF, TXT (OCR), MD, DOCX
-    - TXT/MD → PDF, DOCX, HTML, RTF
-- Perluas edge function `process-file/index.ts` `action: "convert"`:
-  - Tambah format: `docx` (pakai `docx` npm via esm.sh), `rtf` (template plain), `odt` (template minimal), `epub` (pakai `epub-gen-memory`), `png` (untuk pdf→png pakai pdfium / unpdf render). Untuk format yang sulit di Deno, fallback ke HTML printable dengan nama ekstensi target + catatan.
-  - Validasi: tolak kombinasi yang tidak didukung dengan pesan jelas.
-- UI: tambah komponen kecil `FileActionBar` di MobileAIChat dan AI desktop yang render setelah `extractedText` tersedia.
+Shared helper `src/lib/socialPopup.ts`:
+- `SOCIAL_LINKS = { instagram, tiktok, youtube, facebook, linkedin }`
+- `openSocialPopup(platform)` calls `window.open(url, '_blank', 'popup=yes,width=450,height=750,noopener')`.
 
-## 4. Batas drag: kanan/kiri/bawah maksimal 1/4 layar
-- Di `StickyNotes.tsx` dan kotak Media/AI (desktop draggable):
-  - Hitung viewport `vw`, `vh`.
-  - Clamp posisi sehingga elemen tidak bisa keluar lebih dari `vw/4` ke kiri/kanan dan `vh/4` ke bawah dari area visible (artinya minimal 3/4 elemen harus tetap terlihat di area itu). Atas tetap clamp di bawah navbar (sudah ada).
-  - Terapkan di handler `onPointerMove` untuk ketiga kotak.
+FAB menu (`StickyNotes.tsx`):
+- Add a new `FabItem` "Sosmed" that toggles a sub-row of small icon buttons (IG, TikTok, YouTube, FB, LinkedIn).
+- Each icon button has `title={t("break_with_social_tip")}` for hover tooltip and calls `openSocialPopup(...)`.
 
-## 5. Tombol istirahat: toggle ikon untuk Medsos
-- Di kotak/area break (TimerSetup saat phase=break atau panel break aktif), ganti toggle text "Istirahat dengan medsos?" menjadi tombol ikon kecil (icon `Globe`/`Share2`) yang bisa di-toggle on/off. Tooltip menampilkan label terjemahan.
-- State `breakWithSocial` tetap dipersist seperti sebelumnya.
+Break card (`TimerSetup.tsx`):
+- Under the break presets, render a row of icon buttons (IG, TikTok, YouTube). Each: rounded button, brand color on hover, `title={t("break_with_social_tip")}` tooltip, click → `openSocialPopup`.
+- Keep the existing `breakWithSocial` toggle (it controls the in-app emulator panel auto-open).
 
-## 6. Social panel: emulator UI medsos
-- Resize `SocialBreakPanel`:
-  - Desktop: lebar = 1/3 viewport, tinggi mulai dari **bawah navbar** sampai bawah layar (top: `var(--nav-h, 64px)`), dock di kanan. Avatar/profile di header tetap terlihat karena tidak menutup navbar.
-  - Mobile: 1/3 tinggi layar dock di bawah, atau full-width 1/3 height; tetap tidak menutup header.
-- Saat aktif: geser kotak lain (Timer, Sticky, Media, AI) ke kiri dan kecilkan (skala 0.85 + translateX) lewat class `body[data-social-open=true]` + transisi.
-- Ganti isi panel jadi "emulator" tab/aplikasi:
-  - Tab bar atas dengan icon Instagram / YouTube / TikTok / Facebook / LinkedIn.
-  - Setiap tab merender UI **bawaan in-app** (komponen mock React yang menyerupai feed asli — bukan iframe situs aslinya): contoh stories+posts untuk IG, video card list untuk YouTube, vertical reels untuk TikTok, feed untuk FB, post list untuk LinkedIn. Data dummy lokal supaya tetap berjalan offline tanpa cors/login.
-  - Tambahkan tombol "Buka asli di tab baru" sebagai opsi sekunder.
-- File baru: `src/components/social/InstagramApp.tsx`, `YouTubeApp.tsx`, `TikTokApp.tsx`, `FacebookApp.tsx`, `LinkedInApp.tsx`. Semua pure presentational + i18n.
+New i18n key: `break_with_social_tip` = "Istirahat dengan Sosmed" / "Break with social media" / … (all 5 langs).
 
-## 7. HelpGuide: intro "Apa itu Bloomdoro"
-- Di atas list FAQ pada `HelpGuide.tsx`, tambahkan blok intro:
-  - Judul kecil + paragraf: "Bloomdoro adalah aplikasi Pomodoro …" lalu deskripsi singkat (fokus, istirahat, garden, AI, medsos break, kustomisasi).
-- Terjemahkan via key baru `guide_intro_title`, `guide_intro_body` untuk 5 bahasa.
+## 2. Full internationalization pass
 
----
+Audit every visible string and route it through `t(...)` from `src/lib/i18n.tsx`. Add missing keys for all 5 langs (id, en, ar, ja, zh).
 
-## Bagian Teknis
+Files to fix (still hard-coded Indonesian):
+- `TimerSetup.tsx`: "Set Your Focus Time", "Pilih Tema Animasi", "Bunga Tumbuh", "Roket ke Bulan", "minutes", "Tambahkan Waktu Istirahat", "Repeat …", "Break Time", "Medsos ON/OFF", "Medsos otomatis terbuka saat istirahat".
+- `StickyNotes.tsx` creator dialogs: "Sticky Note Baru", "Judul...", "Deskripsi...", "Warna", "Done", "Batal", AI placeholders, "Login dulu untuk lihat riwayat AI".
+- `HelpGuide.tsx`: the entire `FAQ` array (12 questions + answers) → move to `T` as `faq_q1`/`faq_a1`…`faq_q12`/`faq_a12`; "Login dahulu" button → `login_first`.
+- `MobileAIChat.tsx`: initial greeting, "sedang berpikir...", file-upload prompt, placeholder.
+- `Index.tsx`: toast "Login dulu untuk lihat riwayat AI", copyright line stays as-is (proper noun/email).
+- `SettingsModal.tsx`, `UserMenu.tsx`, `SocialBreakPanel.tsx`: scan and replace any remaining Indonesian literals.
 
-**File baru**
-- `src/components/social/{InstagramApp,YouTubeApp,TikTokApp,FacebookApp,LinkedInApp}.tsx`
-- `src/components/FileActionBar.tsx`
+Add an explicit `t()` audit checklist in PR description; render-test each language by switching from settings.
 
-**File diedit**
-- `src/pages/Index.tsx` — hapus pemakaian `MobileTimerHeader` di layout utama, set `data-social-open` di body, render `SocialBreakPanel` dock kanan.
-- `src/components/MobileAIChat.tsx` — animasi & timer header tetap (sudah ada), kecilkan animasi, sisipkan `FileActionBar`.
-- `src/components/SocialBreakPanel.tsx` — refactor jadi emulator tabs + sizing baru.
-- `src/components/TimerSetup.tsx` — toggle medsos jadi icon button + i18n.
-- `src/components/StickyNotes.tsx` (dan logic Media/AI box) — clamp 1/4 viewport.
-- `src/components/SettingsModal.tsx` — ganti hardcoded ke `t()`.
-- `src/components/HelpGuide.tsx` — tambah intro.
-- `src/lib/i18n.tsx` — tambah key baru untuk 5 bahasa.
-- `supabase/functions/process-file/index.ts` — tambah format konversi (docx, rtf, odt, epub, png) + validasi.
+## 3. Floating-item selection + Hapus Semua
 
-**Migrations**: tidak ada.
+In `StickyNotes.tsx`:
 
-**Catatan UX**
-- Saat `breakWithSocial` aktif & break dimulai → otomatis buka SocialBreakPanel; tutup otomatis saat break selesai.
-- Emulator menggunakan data dummy lokal (bukan API resmi) supaya tidak butuh login/izin.
-- Pada mobile, social panel tidak menggeser kotak lain (layar terlalu kecil); cukup overlay di 1/3 bawah.
+- Add state `selectedId: string | null` and `armedId: string | null`.
+- On `pointerdown` of a note, start a 2-second timer (`setTimeout`). If pointer is released without dragging more than ~5 px, mark `selectedId = id`. Cancel the timer if drag starts or pointer moves > 5 px (so dragging still works). This matches "ditekan akan aktif setelah dua detik".
+- Click anywhere outside any note clears `selectedId`.
+- In `NoteCard`, when `note.id === selectedId`, add classes `ring-2 ring-primary border-dashed outline-dashed outline-2 outline-primary` (Tailwind dashed border indicator).
+- Render a floating "Hapus Semua" button:
+  - When `notes.length > 0`, show fixed bottom-center button: trash icon on top, `t("delete_all")` label below (`fixed bottom-24 left-1/2 -translate-x-1/2`).
+  - When a note is selected, anchor a small "Hapus" button just below the selected note (absolute, computed from `note.x/y/width/height`).
+  - Click → confirm via `sonner` toast with action, then `setNotes([])` and clear `selectedId`.
+
+New i18n keys: `delete_all`, `selected_hint`, `delete_one`.
+
+## 4. PDF upload + conversion picker inside Talk-with-AI
+
+Applies to both desktop `AiChatNote` (inside `StickyNotes.tsx`) and `MobileAIChat.tsx`. Backend already supports `action: "convert"` with formats pdf/docx/txt/md/html/rtf/json/csv/xml/epub via `supabase/functions/process-file/index.ts` — no edge-function changes needed.
+
+UI changes (chat input area):
+- Existing paperclip/Plus opens file picker (accept includes `.pdf`).
+- When the chosen file is a PDF (`f.type === "application/pdf"` or `.pdf`):
+  1. Don't auto-send yet. Stage it as `pendingFile`.
+  2. Render a chip above the textarea: file name + a `<Select>` dropdown labelled `t("convert_to")` with options: Word (.docx), Text (.txt), Image (.jpg via existing PNG export fallback → add PNG/JPG entry), Markdown (.md), HTML.
+  3. Send button caption changes to `t("convert_and_send")`.
+- On send:
+  - Call `supabase.functions.invoke("process-file", { body: { action: "extract", ... } })` to get text.
+  - Then call `action: "convert"` with selected `format`.
+  - Trigger download from returned `dataUrl`, and append an assistant message: `t("download_ready")` + filename.
+- Non-PDF files keep the current "what do you want to do" prompt flow.
+
+New i18n keys: `convert_and_send`, `pdf_detected`, `choose_target_format`, format labels `fmt_word`, `fmt_text`, `fmt_image`, `fmt_md`, `fmt_html`.
+
+## Files touched
+
+- New: `src/lib/socialPopup.ts`
+- Edited: `src/components/StickyNotes.tsx`, `src/components/TimerSetup.tsx`, `src/components/MobileAIChat.tsx`, `src/components/HelpGuide.tsx`, `src/components/SettingsModal.tsx`, `src/components/UserMenu.tsx`, `src/components/SocialBreakPanel.tsx`, `src/pages/Index.tsx`, `src/lib/i18n.tsx`
+
+## Verification
+
+- Switch language to en / ar / ja / zh and scan timer card, break card, FAB menu, sticky/media/AI creators, HelpGuide, mobile chat, settings — confirm no Indonesian leaks.
+- Click each social icon → popup window opens with `width=450,height=750`.
+- Press-and-hold a sticky note 2 s → dashed outline appears; click "Hapus Semua" → all notes cleared.
+- Upload a PDF in Talk-with-AI → format dropdown appears → send → file downloads in selected format.

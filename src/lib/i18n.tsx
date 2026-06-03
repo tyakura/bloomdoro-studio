@@ -149,10 +149,73 @@ export const T: Dict = {
   social_open_original: { id: "Buka aplikasi asli", en: "Open original app", ar: "افتح التطبيق الأصلي", ja: "本物のアプリを開く", zh: "打开原应用" },
   social_panel: { id: "Medsos Istirahat", en: "Break Social", ar: "تواصل الاستراحة", ja: "休憩SNS", zh: "休息社交" },
   toggle_social: { id: "Aktifkan medsos saat istirahat", en: "Enable social during break", ar: "تفعيل التواصل أثناء الاستراحة", ja: "休憩中にSNSを有効化", zh: "休息时启用社交" },
+  break_with_social_tip: { id: "Istirahat dengan Sosmed", en: "Break with social media", ar: "استراحة مع وسائل التواصل", ja: "SNSで休憩", zh: "用社交媒体休息" },
+  social_label: { id: "Sosmed", en: "Social", ar: "تواصل", ja: "SNS", zh: "社交" },
 
   // Mobile header
   focus_short: { id: "Fokus", en: "Focus", ar: "تركيز", ja: "集中", zh: "专注" },
   break_short: { id: "Istirahat", en: "Break", ar: "استراحة", ja: "休憩", zh: "休息" },
+
+  // Selection / delete
+  delete_all: { id: "Hapus Semua", en: "Delete All", ar: "حذف الكل", ja: "すべて削除", zh: "全部删除" },
+  delete_one: { id: "Hapus", en: "Delete", ar: "حذف", ja: "削除", zh: "删除" },
+  confirm_delete_all: { id: "Hapus semua kotak melayang?", en: "Delete all floating items?", ar: "حذف كل العناصر؟", ja: "すべての浮遊要素を削除?", zh: "删除所有浮动元素？" },
+
+  // PDF conversion picker
+  pdf_detected: { id: "PDF terdeteksi — pilih format konversi:", en: "PDF detected — pick a conversion format:", ar: "تم اكتشاف PDF — اختر صيغة:", ja: "PDFを検出 — 変換形式を選択:", zh: "检测到 PDF — 选择转换格式:" },
+  convert_and_send: { id: "Konversi & kirim", en: "Convert & send", ar: "تحويل وإرسال", ja: "変換して送信", zh: "转换并发送" },
+  fmt_word: { id: "Word (.docx)", en: "Word (.docx)", ar: "وورد (.docx)", ja: "Word (.docx)", zh: "Word (.docx)" },
+  fmt_text: { id: "Teks (.txt)", en: "Text (.txt)", ar: "نص (.txt)", ja: "テキスト (.txt)", zh: "文本 (.txt)" },
+  fmt_image: { id: "Gambar (.jpg)", en: "Image (.jpg)", ar: "صورة (.jpg)", ja: "画像 (.jpg)", zh: "图片 (.jpg)" },
+  fmt_md: { id: "Markdown (.md)", en: "Markdown (.md)", ar: "ماركداون (.md)", ja: "Markdown (.md)", zh: "Markdown (.md)" },
+  fmt_html: { id: "HTML (.html)", en: "HTML (.html)", ar: "HTML (.html)", ja: "HTML (.html)", zh: "HTML (.html)" },
+
+  // TimerSetup additions
+  medsos_on: { id: "Medsos ON", en: "Social ON", ar: "تواصل مفعل", ja: "SNS オン", zh: "社交 开" },
+  medsos_off: { id: "Medsos OFF", en: "Social OFF", ar: "تواصل مغلق", ja: "SNS オフ", zh: "社交 关" },
+
+  // Sticky / media creators
+  new_sticky: { id: "Sticky Note Baru", en: "New Sticky Note", ar: "ملاحظة جديدة", ja: "新しい付箋", zh: "新便签" },
+  new_media: { id: "Media Baru", en: "New Media", ar: "وسائط جديدة", ja: "新しいメディア", zh: "新媒体" },
+  title_placeholder: { id: "Judul...", en: "Title...", ar: "العنوان...", ja: "タイトル...", zh: "标题..." },
+  desc_placeholder: { id: "Deskripsi... (Enter untuk baris baru)", en: "Description... (Enter for new line)", ar: "الوصف...", ja: "説明...", zh: "描述..." },
+  color: { id: "Warna", en: "Color", ar: "اللون", ja: "色", zh: "颜色" },
+  done: { id: "Done", en: "Done", ar: "تم", ja: "完了", zh: "完成" },
+  cancel: { id: "Batal", en: "Cancel", ar: "إلغاء", ja: "キャンセル", zh: "取消" },
+  upload_image_video: { id: "Upload gambar / video", en: "Upload image / video", ar: "رفع صورة / فيديو", ja: "画像/動画をアップロード", zh: "上传图片/视频" },
+  paste_media_url: { id: "Paste URL YouTube / gambar / video...", en: "Paste YouTube / image / video URL...", ar: "الصق رابط...", ja: "URLを貼り付け...", zh: "粘贴 URL..." },
+  media_help: { id: "Mendukung YouTube, .mp4/.webm, dan gambar.", en: "Supports YouTube, .mp4/.webm, and images.", ar: "يدعم يوتيوب وفيديو وصور.", ja: "YouTube、動画、画像をサポート。", zh: "支持 YouTube、视频和图片。" },
+
+  // Login / common
+  login_first: { id: "Login dahulu", en: "Sign in first", ar: "سجل الدخول أولاً", ja: "まずログイン", zh: "请先登录" },
+  login_for_history: { id: "Login dulu untuk lihat riwayat AI", en: "Sign in to view AI history", ar: "سجل الدخول لعرض السجل", ja: "ログインしてAI履歴を見る", zh: "登录后查看 AI 历史" },
+  thinking: { id: "sedang berpikir...", en: "thinking...", ar: "يفكر...", ja: "考え中...", zh: "思考中..." },
+
+  // HelpGuide FAQ
+  faq_q1: { id: "Bagaimana cara memulai sesi fokus?", en: "How do I start a focus session?", ar: "كيف أبدأ جلسة تركيز؟", ja: "集中セッションの始め方は？", zh: "如何开始专注会话？" },
+  faq_a1: { id: "Atur durasi fokus & istirahat, pilih tema (bunga/roket), lalu klik play.", en: "Set focus & break durations, pick a theme (flower/rocket), then click play.", ar: "حدد المدة، اختر السمة ثم اضغط تشغيل.", ja: "時間とテーマを選び再生をクリック。", zh: "设置时长、选择主题，然后点击播放。" },
+  faq_q2: { id: "Apa fungsi mode Repeat?", en: "What does Repeat mode do?", ar: "ما وظيفة وضع التكرار؟", ja: "リピートモードとは？", zh: "重复模式有什么作用？" },
+  faq_a2: { id: "Mengulang sesi fokus & istirahat otomatis sampai kamu klik Hentikan.", en: "Auto-repeats focus & break cycles until you press Stop.", ar: "يكرر تلقائيًا حتى تضغط إيقاف.", ja: "停止を押すまで自動で繰り返します。", zh: "自动循环直到点击停止。" },
+  faq_q3: { id: "Bagaimana cara mengisi Garden?", en: "How do I fill the Garden?", ar: "كيف أملأ الحديقة؟", ja: "ガーデンを埋めるには？", zh: "如何填满花园？" },
+  faq_a3: { id: "Setiap sesi fokus selesai dengan tema bunga, satu bunga ditambahkan (maks 20).", en: "Each completed flower-themed focus session adds one flower (max 20).", ar: "كل جلسة مكتملة تضيف زهرة (حتى 20).", ja: "完了ごとに花が1つ追加されます（最大20）。", zh: "每次完成添加一朵花（最多20）。" },
+  faq_q4: { id: "Bagaimana ganti bahasa?", en: "How do I change language?", ar: "كيف أغير اللغة؟", ja: "言語の変え方は？", zh: "如何更换语言？" },
+  faq_a4: { id: "Profil → Settings → Bahasa: pilih dari 5 bahasa.", en: "Profile → Settings → Language: pick one of 5 languages.", ar: "الملف الشخصي → الإعدادات → اللغة.", ja: "プロフィール → 設定 → 言語。", zh: "个人资料 → 设置 → 语言。" },
+  faq_q5: { id: "Cara menambah musik & ambient?", en: "How to add music & ambient?", ar: "كيف أضيف موسيقى؟", ja: "音楽と環境音の追加方法は？", zh: "如何添加音乐和环境声？" },
+  faq_a5: { id: "Profil → Settings → Upload musik atau tempel link YouTube.", en: "Profile → Settings → Upload music or paste a YouTube link.", ar: "الملف الشخصي → الإعدادات → موسيقى.", ja: "プロフィール → 設定 → 音楽。", zh: "个人资料 → 设置 → 音乐。" },
+  faq_q6: { id: "Apa isi tombol + di pojok kanan bawah?", en: "What's inside the + button?", ar: "ما داخل زر +؟", ja: "+ボタンの中身は？", zh: "+ 按钮里有什么？" },
+  faq_a6: { id: "Sticky Note, Media, Talk with AI, dan pintasan Sosmed.", en: "Sticky Note, Media, Talk with AI, and Social shortcuts.", ar: "ملاحظات، وسائط، AI، تواصل.", ja: "付箋、メディア、AI、SNSショートカット。", zh: "便签、媒体、AI 与社交快捷方式。" },
+  faq_q7: { id: "Cara membuat sticky note?", en: "How to make a sticky note?", ar: "كيف أنشئ ملاحظة؟", ja: "付箋の作り方は？", zh: "如何创建便签？" },
+  faq_a7: { id: "+ → Sticky Note. Isi judul/deskripsi, pilih warna, drag ke posisinya.", en: "+ → Sticky Note. Fill title/description, pick color, drag.", ar: "+ → ملاحظة لاصقة.", ja: "+ → 付箋。", zh: "+ → 便签。" },
+  faq_q8: { id: "Apa itu Media note?", en: "What is a Media note?", ar: "ما هي ملاحظة الوسائط؟", ja: "メディアノートとは？", zh: "什么是媒体便签？" },
+  faq_a8: { id: "+ → Media. Tempel YouTube/file/URL. Drag dan resize bebas.", en: "+ → Media. Paste YouTube/file/URL. Drag and resize freely.", ar: "+ → وسائط.", ja: "+ → メディア。", zh: "+ → 媒体。" },
+  faq_q9: { id: "Apa itu Talk with AI?", en: "What is Talk with AI?", ar: "ما هو Talk with AI؟", ja: "Talk with AIとは？", zh: "什么是与 AI 对话？" },
+  faq_a9: { id: "Pilih mode Talk, Riset, atau Coding. Bisa upload PDF & konversi ke format lain.", en: "Pick Talk, Research, or Coding mode. Upload PDFs and convert to other formats.", ar: "اختر الوضع، يمكنك رفع PDF والتحويل.", ja: "モードを選び、PDFをアップロードして変換できます。", zh: "选择模式，可上传 PDF 并转换。" },
+  faq_q10: { id: "Background gambar/video & efek kaca?", en: "Background image/video & glass effect?", ar: "خلفية وزجاج؟", ja: "背景とガラス効果？", zh: "背景与玻璃效果？" },
+  faq_a10: { id: "Profil → Settings → Background. Upload atau tempel URL.", en: "Profile → Settings → Background. Upload or paste URL.", ar: "الإعدادات → الخلفية.", ja: "設定 → 背景。", zh: "设置 → 背景。" },
+  faq_q11: { id: "Beda tema bunga & roket?", en: "Difference between flower & rocket?", ar: "الفرق بين الزهرة والصاروخ؟", ja: "花とロケットの違い？", zh: "花和火箭的区别？" },
+  faq_a11: { id: "Bunga tumbuh perlahan; roket terbang ke bulan.", en: "Flower grows slowly; rocket launches to the moon.", ar: "الزهرة تنمو، الصاروخ يطير.", ja: "花は育ち、ロケットは飛びます。", zh: "花慢慢生长，火箭飞向月球。" },
+  faq_q12: { id: "Data saya hilang kalau refresh?", en: "Will my data disappear on refresh?", ar: "هل تختفي بياناتي؟", ja: "更新でデータは消える？", zh: "刷新会丢数据吗？" },
+  faq_a12: { id: "Tidak — semua tersimpan otomatis di browser. Dengan login, sinkron lintas perangkat.", en: "No — everything is saved locally. Sign in to sync across devices.", ar: "لا، يتم الحفظ محليًا.", ja: "いいえ、ローカルに保存されます。", zh: "不会，会自动保存。" },
 };
 
 interface LangCtx {

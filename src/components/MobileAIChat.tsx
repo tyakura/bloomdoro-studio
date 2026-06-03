@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Send, Plus, Loader2, Paperclip, FileDown } from "lucide-react";
+import { ArrowLeft, Send, Plus, Loader2, X, FileText } from "lucide-react";
 import { BloomdoroLogo } from "@/components/BloomdoroLogo";
 import { GrowingFlower } from "@/components/GrowingFlower";
 import { GrowingRocket } from "@/components/GrowingRocket";
@@ -22,25 +22,48 @@ interface Props {
 
 const pad = (n: number) => n.toString().padStart(2, "0");
 
+const PDF_FORMATS: { value: string; key: "fmt_word" | "fmt_text" | "fmt_md" | "fmt_html" | "fmt_image" }[] = [
+  { value: "docx", key: "fmt_word" },
+  { value: "txt", key: "fmt_text" },
+  { value: "md", key: "fmt_md" },
+  { value: "html", key: "fmt_html" },
+];
+
 export function MobileAIChat({ onBack, timerProgress, timerMinutes, timerSeconds, theme, flowerVariant, isFocusing }: Props) {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Halo! Aku Bloomdoro AI. Lampirkan file (PDF, DOCX, gambar) atau tanya apa saja." },
+    { role: "assistant", content: t("ai_greet") },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [extractedText, setExtractedText] = useState<string>("");
+  const [pendingPdf, setPendingPdf] = useState<{ file: File; dataUrl: string } | null>(null);
+  const [pdfFormat, setPdfFormat] = useState<string>("docx");
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight); }, [messages, loading]);
 
+  const readDataUrl = (f: File) => new Promise<string>((res, rej) => {
+    const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(f);
+  });
+
+  const isPdf = (f: File) => f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+
   const handleFile = async (f: File) => {
+    if (isPdf(f)) {
+      try {
+        const dataUrl = await readDataUrl(f);
+        setPendingPdf({ file: f, dataUrl });
+      } catch (e: any) {
+        toast.error(e.message || "Failed");
+      }
+      return;
+    }
+    // Non-PDF: original extract flow
     setLoading(true);
     try {
-      const dataUrl = await new Promise<string>((res, rej) => {
-        const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(f);
-      });
+      const dataUrl = await readDataUrl(f);
       setMessages(m => [...m, { role: "user", content: `📎 ${f.name}` }]);
       const { data, error } = await supabase.functions.invoke("process-file", {
         body: { action: "extract", fileName: f.name, fileType: f.type, dataUrl },
@@ -48,42 +71,47 @@ export function MobileAIChat({ onBack, timerProgress, timerMinutes, timerSeconds
       if (error) throw error;
       const txt = data.text || "";
       setExtractedText(txt);
-      setMessages(m => [...m, { role: "assistant", content: `Aku sudah membaca **${f.name}** (${txt.length} karakter).\n\n**Apa yang ingin kamu lakukan dengan file ini?**\n\n- ✍️ Ringkas / Terjemahkan / Jelaskan\n- 🔄 Konversi ke: **PDF, Word (DOC/DOCX), TXT, MD, HTML, RTF, JSON, CSV, XML, EPUB**\n- 💬 Atau tanya bebas\n\nContoh: "konversi ke docx", "ringkas dalam 5 poin", "jelaskan bagian utama".` }]);
+      setMessages(m => [...m, { role: "assistant", content: `${t("file_what_to_do")}\n\n- ${t("summarize")} / ${t("translate")} / ${t("explain")}\n- ${t("convert_to")}` }]);
     } catch (e: any) {
-      toast.error(e.message || "Gagal proses file");
+      toast.error(e.message || "Failed");
     } finally { setLoading(false); }
   };
 
+  const sendPdfConversion = async () => {
+    if (!pendingPdf || loading) return;
+    const { file, dataUrl } = pendingPdf;
+    setLoading(true);
+    setMessages(m => [...m, { role: "user", content: `📎 ${file.name} → .${pdfFormat}` }]);
+    try {
+      const ext = await supabase.functions.invoke("process-file", {
+        body: { action: "extract", fileName: file.name, fileType: file.type, dataUrl },
+      });
+      if (ext.error) throw ext.error;
+      const text = ext.data?.text || "";
+      const conv = await supabase.functions.invoke("process-file", {
+        body: { action: "convert", text, format: pdfFormat, title: file.name.replace(/\.[^.]+$/, "") },
+      });
+      if (conv.error) throw conv.error;
+      const a = document.createElement("a");
+      a.href = conv.data.dataUrl; a.download = conv.data.fileName; a.click();
+      setMessages(m => [...m, { role: "assistant", content: `✅ ${t("download_ready")}: **${conv.data.fileName}**` }]);
+      setPendingPdf(null);
+    } catch (e: any) {
+      setMessages(m => [...m, { role: "assistant", content: `❌ ${e.message}` }]);
+    } finally { setLoading(false); }
+  };
 
   const send = async () => {
+    if (pendingPdf) { await sendPdfConversion(); return; }
     const text = input.trim();
     if (!text || loading) return;
     const newMsgs: Msg[] = [...messages, { role: "user", content: text }];
     setMessages(newMsgs); setInput(""); setLoading(true);
 
-    // Detect conversion intent
-    const m = text.match(/konversi|convert|ubah .* ke (pdf|doc|docx|txt|md|html|rtf|json|csv|xml|epub)|export.*(pdf|doc|docx|txt|md|html|rtf|json|csv|xml|epub)/i);
-    if (m && extractedText) {
-      const fmt = (text.match(/\b(pdf|docx|doc|txt|md|html|rtf|json|csv|xml|epub)\b/i)?.[1] || "txt").toLowerCase();
-      try {
-        const { data, error } = await supabase.functions.invoke("process-file", {
-          body: { action: "convert", text: extractedText, format: fmt, title: "bloomdoro-export" },
-        });
-        if (error) throw error;
-        const a = document.createElement("a");
-        a.href = data.dataUrl; a.download = data.fileName; a.click();
-        setMessages(m => [...m, { role: "assistant", content: `✅ File **${data.fileName}** sudah diunduh.` }]);
-      } catch (e: any) {
-        setMessages(m => [...m, { role: "assistant", content: `❌ ${e.message}` }]);
-      } finally { setLoading(false); }
-      return;
-    }
-
-    // Regular chat
     try {
       const apiMsgs = newMsgs.map(mm => ({ role: mm.role, content: mm.content }));
       if (extractedText) {
-        apiMsgs.unshift({ role: "user", content: `[KONTEKS FILE]\n${extractedText.slice(0, 20000)}` });
+        apiMsgs.unshift({ role: "user", content: `[FILE CONTEXT]\n${extractedText.slice(0, 20000)}` });
       }
       const url = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.functions.supabase.co/ai-chat`;
       const res = await fetch(url, {
@@ -123,7 +151,7 @@ export function MobileAIChat({ onBack, timerProgress, timerMinutes, timerSeconds
           <BloomdoroLogo />
           <div className="flex-1 flex items-center justify-center gap-3">
             {isFocusing && (
-              <div className="scale-50 origin-center">
+              <div className="scale-[0.35] origin-center max-w-[40%] overflow-hidden">
                 {theme === "flower" ? <GrowingFlower progress={timerProgress} variant={flowerVariant} /> : <GrowingRocket progress={timerProgress} />}
               </div>
             )}
@@ -145,8 +173,31 @@ export function MobileAIChat({ onBack, timerProgress, timerMinutes, timerSeconds
             </div>
           </div>
         ))}
-        {loading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> sedang berpikir...</div>}
+        {loading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> {t("thinking")}</div>}
       </div>
+
+      {/* PDF picker chip */}
+      {pendingPdf && (
+        <div className="border-t border-border bg-muted/40 p-2 flex items-center gap-2 shrink-0">
+          <FileText className="w-4 h-4 text-primary shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-muted-foreground truncate">{t("pdf_detected")}</p>
+            <p className="text-xs font-medium truncate">{pendingPdf.file.name}</p>
+          </div>
+          <select
+            value={pdfFormat}
+            onChange={(e) => setPdfFormat(e.target.value)}
+            className="text-xs rounded-md border border-border bg-background px-2 py-1"
+          >
+            {PDF_FORMATS.map(f => (
+              <option key={f.value} value={f.value}>{t(f.key)}</option>
+            ))}
+          </select>
+          <button onClick={() => setPendingPdf(null)} className="p-1 rounded-full hover:bg-background">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Input */}
       <div className="border-t border-border p-3 flex items-center gap-2 shrink-0">
@@ -159,10 +210,11 @@ export function MobileAIChat({ onBack, timerProgress, timerMinutes, timerSeconds
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder="Tulis pesan atau lampirkan file..."
+          placeholder={t("type_message")}
           className="flex-1 px-3 py-2 rounded-full bg-muted border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          disabled={!!pendingPdf}
         />
-        <button onClick={send} disabled={loading || !input.trim()} className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-50">
+        <button onClick={send} disabled={loading || (!input.trim() && !pendingPdf)} className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-50" title={pendingPdf ? t("convert_and_send") : undefined}>
           <Send className="w-5 h-5" />
         </button>
       </div>

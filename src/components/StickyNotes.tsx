@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText } from "lucide-react";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText, Trash2, Instagram, Youtube, Music2, Facebook, Linkedin, Share2 } from "lucide-react";
+import { openSocialPopup, SocialPlatform } from "@/lib/socialPopup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -79,9 +80,12 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
   const { t } = useLang();
   const [notes, setNotes] = useState<AnyNote[]>(() => loadJSON<AnyNote[]>(NOTES_KEY, []));
   const [menuOpen, setMenuOpen] = useState(false);
+  const [socialOpen, setSocialOpen] = useState(false);
   const [creating, setCreating] = useState<NoteType | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
   const resizeRef = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number } | null>(null);
+  const pressRef = useRef<{ id: string; timer: number; startX: number; startY: number; moved: boolean } | null>(null);
 
   const today = new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
 
@@ -118,6 +122,15 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     if (!el) return;
     const rect = el.getBoundingClientRect();
     dragRef.current = { id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+
+    // Long-press to select (2s)
+    if (pressRef.current?.timer) window.clearTimeout(pressRef.current.timer);
+    const timer = window.setTimeout(() => {
+      const p = pressRef.current;
+      if (p && !p.moved) setSelectedId(p.id);
+    }, 2000);
+    pressRef.current = { id, timer, startX: e.clientX, startY: e.clientY, moved: false };
+
     const isDesktop = window.matchMedia("(min-width: 768px)").matches;
     const header = document.querySelector("[data-app-header]") as HTMLElement | null;
     const minY = isDesktop ? (header ? header.getBoundingClientRect().bottom + 4 : 80) : 0;
@@ -125,11 +138,19 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     const elH = rect.height;
     const onMove = (ev: PointerEvent) => {
       const d = dragRef.current; if (!d) return;
+      const p = pressRef.current;
+      if (p) {
+        const dx = ev.clientX - p.startX;
+        const dy = ev.clientY - p.startY;
+        if (Math.hypot(dx, dy) > 5) {
+          p.moved = true;
+          window.clearTimeout(p.timer);
+        }
+      }
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       let nextX = ev.clientX - d.offsetX;
       let nextY = Math.max(minY, ev.clientY - d.offsetY);
-      // Limit each side to at most 1/4 of element off-screen
       const minX = -elW / 4;
       const maxX = vw - (elW * 3) / 4;
       const maxY = vh - (elH * 3) / 4;
@@ -137,7 +158,13 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
       nextY = Math.min(nextY, maxY);
       setNotes(prev => prev.map(n => n.id === d.id ? { ...n, x: nextX, y: nextY } : n));
     };
-    const onUp = () => { dragRef.current = null; window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); };
+    const onUp = () => {
+      dragRef.current = null;
+      if (pressRef.current?.timer) window.clearTimeout(pressRef.current.timer);
+      pressRef.current = null;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
     window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp);
   }, []);
 
@@ -194,12 +221,41 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     setNotes(prev => prev.map(n => n.id === id && n.type === "ai" ? { ...n, mode } : n));
   };
 
+  const deleteAll = () => {
+    if (notes.length === 0) return;
+    if (window.confirm(t("confirm_delete_all"))) {
+      setNotes([]);
+      setSelectedId(null);
+    }
+  };
+
+  // Clear selection when clicking outside any note
+  useEffect(() => {
+    const onDocDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-note-id]") && !target.closest("[data-keep-selection]")) {
+        setSelectedId(null);
+      }
+    };
+    window.addEventListener("pointerdown", onDocDown);
+    return () => window.removeEventListener("pointerdown", onDocDown);
+  }, []);
+
+  const SOCIAL_FAB: { id: SocialPlatform; icon: any; color: string }[] = [
+    { id: "instagram", icon: Instagram, color: "#e1306c" },
+    { id: "tiktok", icon: Music2, color: "#000000" },
+    { id: "youtube", icon: Youtube, color: "#ff0000" },
+    { id: "facebook", icon: Facebook, color: "#1877f2" },
+    { id: "linkedin", icon: Linkedin, color: "#0a66c2" },
+  ];
+
   return (
     <>
       {notes.map(note => (
         <NoteCard
           key={note.id}
           note={note}
+          selected={selectedId === note.id}
           onPointerDown={handlePointerDown}
           onDelete={deleteNote}
           onResizeDown={handleResizeDown}
@@ -211,16 +267,48 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
       {creating === "sticky" && <StickyCreator today={today} onClose={() => setCreating(null)} onSave={addStickyNote} />}
       {creating === "media" && <MediaCreator onClose={() => setCreating(null)} onSave={(u, k) => { addMediaNote(u, k); setCreating(null); }} />}
 
+      {/* Delete All button (bottom center) */}
+      {notes.length > 0 && (
+        <button
+          data-keep-selection
+          onClick={deleteAll}
+          title={t("delete_all")}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[55] flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl bg-card border border-border shadow-lg hover:bg-destructive hover:text-destructive-foreground transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span className="text-[10px] font-medium">{t("delete_all")}</span>
+        </button>
+      )}
+
       {/* FAB menu */}
       {menuOpen && (
-        <div className="fixed bottom-24 right-6 z-[55] flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2">
+        <div data-keep-selection className="fixed bottom-24 right-6 z-[55] flex flex-col gap-2 items-end animate-in fade-in slide-in-from-bottom-2">
           <FabItem icon={StickyIcon} label={t("sticky_note")} onClick={() => { setCreating("sticky"); setMenuOpen(false); }} />
           <FabItem icon={ImageIcon} label={t("media")} onClick={() => { setCreating("media"); setMenuOpen(false); }} />
           <FabItem icon={Sparkles} label={t("talk_with_ai")} badge={t("new_badge")} onClick={() => { if (onTalkWithAI) onTalkWithAI(); else addAiNote(); setMenuOpen(false); }} />
+          <FabItem icon={Share2} label={t("social_label")} onClick={() => setSocialOpen(o => !o)} />
+          {socialOpen && (
+            <div className="flex gap-1.5 pr-1 pb-1 animate-in fade-in slide-in-from-right-2">
+              {SOCIAL_FAB.map(({ id, icon: Icon, color }) => (
+                <button
+                  key={id}
+                  onClick={() => { openSocialPopup(id); setSocialOpen(false); setMenuOpen(false); }}
+                  title={t("break_with_social_tip")}
+                  aria-label={t("break_with_social_tip")}
+                  className="w-9 h-9 rounded-full bg-card border border-border shadow-md flex items-center justify-center transition-all hover:scale-110 hover:text-white"
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       <button
+        data-keep-selection
         onClick={() => setMenuOpen(o => !o)}
         className="fixed bottom-6 right-6 z-[56] w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl flex items-center justify-center transition-all hover:scale-110"
         style={{ transform: menuOpen ? "rotate(45deg)" : undefined }}
@@ -249,8 +337,9 @@ function FabItem({ icon: Icon, label, onClick, badge }: { icon: any; label: stri
 }
 
 // ============ Note Card renderer ============
-function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
+function NoteCard({ note, selected, onPointerDown, onDelete, onResizeDown, onAiUpdate, onAiModeChange }: {
   note: AnyNote;
+  selected?: boolean;
   onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
   onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
@@ -258,6 +347,7 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
   onAiModeChange: (id: string, mode: ChatMode) => void;
 }) {
   const baseStyle: React.CSSProperties = { left: note.x, top: note.y, width: note.width, height: note.height || undefined };
+  const selectedRing = selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background outline-dashed outline-2 outline-primary outline-offset-2" : "";
 
   if (note.type === "sticky") {
     let cls = "border-2";
@@ -271,7 +361,7 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
     return (
       <div
         data-note-id={note.id}
-        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none touch-none ${cls}`}
+        className={`fixed z-40 rounded-lg shadow-lg p-3 cursor-grab active:cursor-grabbing select-none touch-none ${cls} ${selectedRing}`}
         style={style}
         onPointerDown={(e) => onPointerDown(e, note.id)}
       >
@@ -289,7 +379,7 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
     return (
       <div
         data-note-id={note.id}
-        className="fixed z-40 rounded-lg shadow-lg overflow-hidden bg-card border-2 border-border select-none"
+        className={`fixed z-40 rounded-lg shadow-lg overflow-hidden bg-card border-2 border-border select-none ${selectedRing}`}
         style={baseStyle}
       >
         <div
@@ -319,7 +409,8 @@ function NoteCard({ note, onPointerDown, onDelete, onResizeDown, onAiUpdate, onA
 
   // AI
   return (
-    <AiChatNote note={note} onPointerDown={onPointerDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
+    <AiChatNote note={note} selected={selected} onPointerDown={onPointerDown} onDelete={onDelete} onResizeDown={onResizeDown} onUpdate={onAiUpdate} onModeChange={onAiModeChange} />
+
   );
 }
 
@@ -347,6 +438,7 @@ function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.PointerEvent) =>
 
 // ============ Sticky creator ============
 function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () => void; onSave: (n: any) => void }) {
+  const { t } = useLang();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedColor, setSelectedColor] = useState(0);
@@ -364,19 +456,19 @@ function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () 
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
       <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg font-bold text-foreground">Sticky Note Baru</h2>
+          <h2 className="font-display text-lg font-bold text-foreground">{t("new_sticky")}</h2>
           <span className="text-xs text-muted-foreground">{today}</span>
         </div>
         <div className="space-y-3">
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul..." className="font-semibold" />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("title_placeholder")} className="font-semibold" />
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Deskripsi... (Enter untuk baris baru / list)"
+            placeholder={t("desc_placeholder")}
             rows={5}
           />
           <div>
-            <span className="text-xs text-muted-foreground mb-2 block">Warna</span>
+            <span className="text-xs text-muted-foreground mb-2 block">{t("color")}</span>
             <div className="flex items-center gap-2">
               {COLOR_SWATCHES.map((s, i) => (
                 <button key={i} onClick={() => { setSelectedColor(i); setShowCP(false); }}
@@ -392,8 +484,8 @@ function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () 
             {showCP && <input type="color" value={customColor} onChange={(e) => setCustomColor(e.target.value)} className="mt-2 w-full h-10 rounded-lg cursor-pointer border border-border" />}
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleSave} className="flex-1" disabled={!title.trim()}>Done</Button>
-            <Button onClick={onClose} variant="outline" className="flex-1">Batal</Button>
+            <Button onClick={handleSave} className="flex-1" disabled={!title.trim()}>{t("done")}</Button>
+            <Button onClick={onClose} variant="outline" className="flex-1">{t("cancel")}</Button>
           </div>
         </div>
       </div>
@@ -403,6 +495,7 @@ function StickyCreator({ today, onClose, onSave }: { today: string; onClose: () 
 
 // ============ Media creator ============
 function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: string, kind: "image" | "video" | "youtube") => void }) {
+  const { t } = useLang();
   const [url, setUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -446,19 +539,19 @@ function MediaCreator({ onClose, onSave }: { onClose: () => void; onSave: (url: 
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-foreground/20 backdrop-blur-sm">
       <div className="bg-card border border-border rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg font-bold text-foreground">Media Baru</h2>
+          <h2 className="font-display text-lg font-bold text-foreground">{t("new_media")}</h2>
           <button onClick={onClose}><X className="w-4 h-4 text-muted-foreground" /></button>
         </div>
         <div className="space-y-3">
           <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleFile} className="hidden" />
           <Button onClick={() => fileRef.current?.click()} variant="outline" className="w-full justify-start gap-2">
-            <Upload className="w-4 h-4" /> Upload gambar / video
+            <Upload className="w-4 h-4" /> {t("upload_image_video")}
           </Button>
           <div className="flex gap-2">
-            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL YouTube / gambar / video..." />
+            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t("paste_media_url")} />
             <Button onClick={handleUrl} disabled={!url.trim()}>OK</Button>
           </div>
-          <p className="text-xs text-muted-foreground">Mendukung YouTube, .mp4/.webm, dan gambar. Drag header untuk pindah, tarik pojok kanan-bawah untuk memperbesar.</p>
+          <p className="text-xs text-muted-foreground">{t("media_help")}</p>
         </div>
       </div>
     </div>
@@ -578,8 +671,9 @@ function parseSources(content: string): { body: string; sources: { title: string
 }
 
 // ============ AI chat note ============
-function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
+function AiChatNote({ note, selected, onPointerDown, onDelete, onResizeDown, onUpdate, onModeChange }: {
   note: AiNote;
+  selected?: boolean;
   onPointerDown: (e: React.PointerEvent, id: string) => void;
   onDelete: (id: string) => void;
   onResizeDown: (e: React.PointerEvent, n: AnyNote) => void;
@@ -595,6 +689,8 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const startedAt = useRef<number>(Date.now());
+  const [pendingPdf, setPendingPdf] = useState<{ file: File; dataUrl: string } | null>(null);
+  const [pdfFormat, setPdfFormat] = useState<string>("docx");
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -614,10 +710,50 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
 
   const handleFiles = async (files: FileList | null) => {
     if (!files?.length) return;
-    const converted = await Promise.all(Array.from(files).slice(0, 4).map(fileToAttachment));
+    const arr = Array.from(files);
+    // If a PDF is among the picked files, stage the first one for conversion
+    const pdf = arr.find(f => f.type === "application/pdf" || /\.pdf$/i.test(f.name));
+    if (pdf) {
+      const dataUrl = await new Promise<string>((res, rej) => {
+        const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(pdf);
+      });
+      setPendingPdf({ file: pdf, dataUrl });
+      setAttachOpen(false);
+      return;
+    }
+    const converted = await Promise.all(arr.slice(0, 4).map(fileToAttachment));
     setAttachments(prev => [...prev, ...converted].slice(0, 6));
     setAttachOpen(false);
   };
+
+  const convertPdf = async () => {
+    if (!pendingPdf || loading) return;
+    setLoading(true);
+    const userMsg: ChatMsg = { role: "user", content: `📎 ${pendingPdf.file.name} → .${pdfFormat}` };
+    let msgs: ChatMsg[] = [...note.messages, userMsg];
+    onUpdate(note.id, msgs);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const ext = await supabase.functions.invoke("process-file", {
+        body: { action: "extract", fileName: pendingPdf.file.name, fileType: pendingPdf.file.type, dataUrl: pendingPdf.dataUrl },
+      });
+      if (ext.error) throw ext.error;
+      const conv = await supabase.functions.invoke("process-file", {
+        body: { action: "convert", text: ext.data?.text || "", format: pdfFormat, title: pendingPdf.file.name.replace(/\.[^.]+$/, "") },
+      });
+      if (conv.error) throw conv.error;
+      const a = document.createElement("a");
+      a.href = conv.data.dataUrl; a.download = conv.data.fileName; a.click();
+      msgs = [...msgs, { role: "assistant", content: `✅ ${t("download_ready")}: **${conv.data.fileName}**` }];
+      onUpdate(note.id, msgs);
+      setPendingPdf(null);
+    } catch (e: any) {
+      onUpdate(note.id, [...msgs, { role: "assistant", content: `❌ ${e.message || "Failed"}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const send = async () => {
     if ((!input.trim() && attachments.length === 0) || loading) return;
@@ -711,7 +847,7 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
   return (
     <div
       data-note-id={note.id}
-      className="fixed z-40 rounded-2xl shadow-xl bg-card border-2 border-primary/30 select-none flex flex-col overflow-hidden"
+      className={`fixed z-40 rounded-2xl shadow-xl bg-card border-2 border-primary/30 select-none flex flex-col overflow-hidden ${selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background outline-dashed outline-2 outline-primary outline-offset-2" : ""}`}
       style={{ left: note.x, top: note.y, width: note.width, height: note.height }}
     >
       {/* Header (drag handle) */}
@@ -787,6 +923,28 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
 
       {/* Input */}
       <div className="p-2 bg-background/50">
+        {pendingPdf && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2">
+            <FileText className="w-4 h-4 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-muted-foreground truncate">{t("pdf_detected")}</p>
+              <p className="text-xs font-medium truncate">{pendingPdf.file.name}</p>
+            </div>
+            <select
+              value={pdfFormat}
+              onChange={(e) => setPdfFormat(e.target.value)}
+              className="text-[11px] rounded-md border border-border bg-background px-1.5 py-1"
+            >
+              <option value="docx">{t("fmt_word")}</option>
+              <option value="txt">{t("fmt_text")}</option>
+              <option value="md">{t("fmt_md")}</option>
+              <option value="html">{t("fmt_html")}</option>
+            </select>
+            <button onClick={() => setPendingPdf(null)} className="p-1 rounded-full hover:bg-background">
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1.5">
             {attachments.map((a, i) => (
@@ -806,7 +964,7 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
           {attachOpen && (
             <div className="absolute bottom-12 left-0 z-10 w-44 rounded-lg border border-border bg-card p-1 shadow-lg">
               <button onClick={() => fileRef.current?.click()} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
-                <Paperclip className="h-3.5 w-3.5" /> File / gambar / audio
+                <Paperclip className="h-3.5 w-3.5" /> File / image / audio
               </button>
               <button onClick={() => exportChatToPdf(note.messages)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs hover:bg-accent">
                 <FileText className="h-3.5 w-3.5" /> Export PDF
@@ -820,13 +978,13 @@ function AiChatNote({ note, onPointerDown, onDelete, onResizeDown, onUpdate, onM
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={note.mode === "coding" ? t("type_code") : note.mode === "riset" ? t("type_research") : t("type_message")}
-          disabled={loading}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); pendingPdf ? convertPdf() : send(); } }}
+          placeholder={pendingPdf ? t("convert_and_send") : (note.mode === "coding" ? t("type_code") : note.mode === "riset" ? t("type_research") : t("type_message"))}
+          disabled={loading || !!pendingPdf}
           rows={1}
           className="text-sm min-h-[40px] max-h-[120px] resize-none"
         />
-        <Button size="icon" onClick={send} disabled={loading || (!input.trim() && attachments.length === 0)}>
+        <Button size="icon" onClick={() => pendingPdf ? convertPdf() : send()} disabled={loading || (!pendingPdf && !input.trim() && attachments.length === 0)} title={pendingPdf ? t("convert_and_send") : undefined}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </Button>
         </div>
