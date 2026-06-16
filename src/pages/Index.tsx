@@ -85,17 +85,10 @@ const Index = () => {
     return () => clearInterval(id);
   }, [repeatMode, phase, timer.status]);
 
-  // Auto-open social on break
-  useEffect(() => {
-    if (phase === "break" && breakWithSocial) setSocialOpen(true);
-    if (phase !== "break") setSocialOpen(false);
-  }, [phase, breakWithSocial]);
-
-  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean, withSocial: boolean) => {
+  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean) => {
     setCustomMinutes(minutes);
     setBreakMinutes(breakMins);
     setRepeatMode(repeat);
-    setBreakWithSocial(withSocial);
     setCycleCount(0);
     setRepeatElapsed(0);
     setTheme(selectedTheme);
