@@ -239,13 +239,6 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     return () => window.removeEventListener("pointerdown", onDocDown);
   }, []);
 
-  const SOCIAL_FAB: { id: SocialPlatform; icon: any; color: string }[] = [
-    { id: "instagram", icon: Instagram, color: "#e1306c" },
-    { id: "tiktok", icon: Music2, color: "#000000" },
-    { id: "youtube", icon: Youtube, color: "#ff0000" },
-    { id: "facebook", icon: Facebook, color: "#1877f2" },
-    { id: "linkedin", icon: Linkedin, color: "#0a66c2" },
-  ];
 
   return (
     <>
