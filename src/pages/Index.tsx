@@ -347,7 +347,7 @@ const Index = () => {
         />
       )}
 
-      {socialOpen && <SocialBreakPanel onClose={() => setSocialOpen(false)} />}
+      
 
       {settingsOpen && (
         <SettingsModal
