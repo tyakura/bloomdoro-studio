@@ -31,8 +31,6 @@ export const T: Dict = {
   repeat: { id: "Repeat", en: "Repeat", ar: "تكرار", ja: "リピート", zh: "重复" },
   on: { id: "ON", en: "ON", ar: "تشغيل", ja: "オン", zh: "开" },
   off: { id: "OFF", en: "OFF", ar: "إيقاف", ja: "オフ", zh: "关" },
-  break_social_tip: { id: "Panel medsos otomatis terbuka saat istirahat", en: "Social panel auto-opens during break", ar: "تفتح لوحة التواصل تلقائيًا أثناء الاستراحة", ja: "休憩中にSNSパネルが自動で開きます", zh: "休息时社交面板自动打开" },
-  break_with_social: { id: "Istirahat dengan medsos", en: "Break with social media", ar: "استراحة مع التواصل", ja: "SNSと一緒に休憩", zh: "用社交媒体休息" },
 
   // Timer running
   focus_session: { id: "Sesi Fokus", en: "Focus Session", ar: "جلسة تركيز", ja: "集中セッション", zh: "专注会话" },
