@@ -117,7 +117,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
         )}
 
         <Button
-          onClick={() => onStart(minutes, theme, showBreak ? breakMinutes : 0, repeat, showBreak ? breakWithSocial : false)}
+          onClick={() => onStart(minutes, theme, showBreak ? breakMinutes : 0, repeat)}
           className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
           size="icon"
         >
