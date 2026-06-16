@@ -162,9 +162,6 @@ export const T: Dict = {
   fmt_md: { id: "Markdown (.md)", en: "Markdown (.md)", ar: "ماركداون (.md)", ja: "Markdown (.md)", zh: "Markdown (.md)" },
   fmt_html: { id: "HTML (.html)", en: "HTML (.html)", ar: "HTML (.html)", ja: "HTML (.html)", zh: "HTML (.html)" },
 
-  // TimerSetup additions
-  medsos_on: { id: "Medsos ON", en: "Social ON", ar: "تواصل مفعل", ja: "SNS オン", zh: "社交 开" },
-  medsos_off: { id: "Medsos OFF", en: "Social OFF", ar: "تواصل مغلق", ja: "SNS オフ", zh: "社交 关" },
 
   // Sticky / media creators
   new_sticky: { id: "Sticky Note Baru", en: "New Sticky Note", ar: "ملاحظة جديدة", ja: "新しい付箋", zh: "新便签" },
