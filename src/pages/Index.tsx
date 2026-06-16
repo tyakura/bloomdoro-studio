@@ -194,8 +194,8 @@ const Index = () => {
       {/* Shrink wrapper: when social panel open, slide & scale content left (desktop only) */}
       <div
         className="flex-1 flex flex-col transition-transform duration-300 ease-out origin-top-left"
-        style={socialOpen && !isMobile ? { transform: "translateX(-8%) scale(0.85)" } : undefined}
       >
+
       {/* Header */}
       <header data-app-header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
         <BloomdoroLogo />
