@@ -51,7 +51,7 @@ const Index = () => {
   const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
   const [mobileAIOpen, setMobileAIOpen] = useState(false);
-  const [socialOpen, setSocialOpen] = useState(false);
+  
   const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   const musicStopRef = useRef<(() => void) | null>(null);
   const completionHandledRef = useRef(false);
