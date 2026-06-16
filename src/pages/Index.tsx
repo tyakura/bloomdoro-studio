@@ -30,7 +30,6 @@ type SessionPhase = "setup" | "focus" | "break" | "complete";
 interface BgState { url: string | null; kind: BgKind; overlay: number; glass: number; muted: boolean; }
 
 const BG_KEY = "bloomdoro_bg";
-const BREAK_SOCIAL_KEY = "bloomdoro_break_social";
 
 const Index = () => {
   const { t } = useLang();
