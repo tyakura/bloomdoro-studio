@@ -122,11 +122,11 @@ export const T: Dict = {
     zh: "什么是 Bloomdoro？",
   },
   guide_intro_body: {
-    id: "Bloomdoro adalah aplikasi Pomodoro yang membantumu fokus lewat siklus kerja dan istirahat singkat. Setiap sesi fokus yang selesai menumbuhkan bunga atau menerbangkan roket — dan mengisi Garden-mu. Tambahkan musik, ambient sound, sticky notes, media, AI pendamping, dan saat istirahat kamu bisa nyalakan panel medsos sebagai jeda santai. Semua tersinkron jika kamu login.",
-    en: "Bloomdoro is a Pomodoro app that helps you focus through short cycles of work and rest. Every completed focus session grows a flower or launches a rocket — and fills your Garden. Add music, ambient sounds, sticky notes, media, an AI companion, and during breaks you can toggle the social panel for a relaxed pause. Everything syncs when you sign in.",
-    ar: "Bloomdoro هو تطبيق بومودورو يساعدك على التركيز عبر دورات قصيرة من العمل والراحة. كل جلسة مكتملة تُنمي زهرة أو تُطلق صاروخًا وتملأ حديقتك. أضف الموسيقى، الأصوات، الملاحظات، الوسائط، ورفيق الذكاء الاصطناعي. أثناء الاستراحة يمكنك تشغيل لوحة التواصل الاجتماعي.",
-    ja: "Bloomdoroは、短い作業と休憩のサイクルで集中をサポートするポモドーロアプリです。完了したセッションごとに花が咲き、ロケットが飛び、ガーデンが満たされます。音楽、環境音、付箋、メディア、AIコンパニオン、そして休憩中はSNSパネルも切り替え可能。ログインすればすべて同期されます。",
-    zh: "Bloomdoro 是一款帮助你通过短暂的工作与休息周期集中注意力的番茄钟应用。每完成一次专注会话都会生长一朵花或发射一枚火箭，并填满你的花园。可添加音乐、环境声、便签、媒体和 AI 伙伴；休息时还可打开社交面板放松。登录后全部同步。",
+    id: "Bloomdoro adalah aplikasi Pomodoro yang membantumu fokus lewat siklus kerja dan istirahat singkat. Setiap sesi fokus yang selesai menumbuhkan bunga atau menerbangkan roket — dan mengisi Garden-mu. Tambahkan musik, ambient sound, sticky notes, media, dan AI pendamping. Semua tersinkron jika kamu login.",
+    en: "Bloomdoro is a Pomodoro app that helps you focus through short cycles of work and rest. Every completed focus session grows a flower or launches a rocket — and fills your Garden. Add music, ambient sounds, sticky notes, media, and an AI companion. Everything syncs when you sign in.",
+    ar: "Bloomdoro هو تطبيق بومودورو يساعدك على التركيز عبر دورات قصيرة من العمل والراحة. كل جلسة مكتملة تُنمي زهرة أو تُطلق صاروخًا وتملأ حديقتك. أضف الموسيقى، الأصوات، الملاحظات، الوسائط، ورفيق الذكاء الاصطناعي.",
+    ja: "Bloomdoroは、短い作業と休憩のサイクルで集中をサポートするポモドーロアプリです。完了したセッションごとに花が咲き、ロケットが飛び、ガーデンが満たされます。音楽、環境音、付箋、メディア、AIコンパニオンを追加できます。ログインすればすべて同期されます。",
+    zh: "Bloomdoro 是一款帮助你通过短暂的工作与休息周期集中注意力的番茄钟应用。每完成一次专注会话都会生长一朵花或发射一枚火箭，并填满你的花园。可添加音乐、环境声、便签、媒体和 AI 伙伴。登录后全部同步。",
   },
   contact_suggest: {
     id: "Hubungi jika ada saran: attayaarkarna12@gmail.com",
