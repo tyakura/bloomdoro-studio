@@ -139,25 +139,13 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase inline-flex items-center gap-1.5">
               <Coffee className="w-3.5 h-3.5" /> {t("break_time")}
             </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setBreakWithSocial(v => !v)}
-                title={breakWithSocial ? t("medsos_on") : t("medsos_off")}
-                aria-label="Toggle social"
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                  breakWithSocial ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-secondary text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => { setShowBreak(false); setRepeat(false); setBreakWithSocial(false); }}
-                className="text-muted-foreground hover:text-foreground p-1"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => { setShowBreak(false); setRepeat(false); }}
+              className="text-muted-foreground hover:text-foreground p-1"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           <div className="flex items-center gap-6">
