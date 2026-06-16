@@ -192,7 +192,7 @@ export const T: Dict = {
   faq_q5: { id: "Cara menambah musik & ambient?", en: "How to add music & ambient?", ar: "كيف أضيف موسيقى؟", ja: "音楽と環境音の追加方法は？", zh: "如何添加音乐和环境声？" },
   faq_a5: { id: "Profil → Settings → Upload musik atau tempel link YouTube.", en: "Profile → Settings → Upload music or paste a YouTube link.", ar: "الملف الشخصي → الإعدادات → موسيقى.", ja: "プロフィール → 設定 → 音楽。", zh: "个人资料 → 设置 → 音乐。" },
   faq_q6: { id: "Apa isi tombol + di pojok kanan bawah?", en: "What's inside the + button?", ar: "ما داخل زر +؟", ja: "+ボタンの中身は？", zh: "+ 按钮里有什么？" },
-  faq_a6: { id: "Sticky Note, Media, Talk with AI, dan pintasan Sosmed.", en: "Sticky Note, Media, Talk with AI, and Social shortcuts.", ar: "ملاحظات، وسائط، AI، تواصل.", ja: "付箋、メディア、AI、SNSショートカット。", zh: "便签、媒体、AI 与社交快捷方式。" },
+  faq_a6: { id: "Sticky Note, Media, dan Talk with AI.", en: "Sticky Note, Media, and Talk with AI.", ar: "ملاحظات، وسائط، وAI.", ja: "付箋、メディア、AI。", zh: "便签、媒体、AI。" },
   faq_q7: { id: "Cara membuat sticky note?", en: "How to make a sticky note?", ar: "كيف أنشئ ملاحظة؟", ja: "付箋の作り方は？", zh: "如何创建便签？" },
   faq_a7: { id: "+ → Sticky Note. Isi judul/deskripsi, pilih warna, drag ke posisinya.", en: "+ → Sticky Note. Fill title/description, pick color, drag.", ar: "+ → ملاحظة لاصقة.", ja: "+ → 付箋。", zh: "+ → 便签。" },
   faq_q8: { id: "Apa itu Media note?", en: "What is a Media note?", ar: "ما هي ملاحظة الوسائط؟", ja: "メディアノートとは？", zh: "什么是媒体便签？" },
