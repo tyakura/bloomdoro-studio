@@ -39,7 +39,7 @@ const Index = () => {
   const [customMinutes, setCustomMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(0);
   const [repeatMode, setRepeatMode] = useState(false);
-  const [breakWithSocial, setBreakWithSocial] = useState<boolean>(() => loadJSON(BREAK_SOCIAL_KEY, false));
+  
   const [cycleCount, setCycleCount] = useState(0);
   const [theme, setTheme] = useState<TimerTheme>("flower");
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
