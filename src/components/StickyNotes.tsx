@@ -277,24 +277,6 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
           <FabItem icon={StickyIcon} label={t("sticky_note")} onClick={() => { setCreating("sticky"); setMenuOpen(false); }} />
           <FabItem icon={ImageIcon} label={t("media")} onClick={() => { setCreating("media"); setMenuOpen(false); }} />
           <FabItem icon={Sparkles} label={t("talk_with_ai")} badge={t("new_badge")} onClick={() => { if (onTalkWithAI) onTalkWithAI(); else addAiNote(); setMenuOpen(false); }} />
-          <FabItem icon={Share2} label={t("social_label")} onClick={() => setSocialOpen(o => !o)} />
-          {socialOpen && (
-            <div className="flex gap-1.5 pr-1 pb-1 animate-in fade-in slide-in-from-right-2">
-              {SOCIAL_FAB.map(({ id, icon: Icon, color }) => (
-                <button
-                  key={id}
-                  onClick={() => { openSocialPopup(id); setSocialOpen(false); setMenuOpen(false); }}
-                  title={t("break_with_social_tip")}
-                  aria-label={t("break_with_social_tip")}
-                  className="w-9 h-9 rounded-full bg-card border border-border shadow-md flex items-center justify-center transition-all hover:scale-110 hover:text-white"
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
-                >
-                  <Icon className="w-4 h-4" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
