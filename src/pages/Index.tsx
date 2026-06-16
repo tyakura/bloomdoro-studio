@@ -229,7 +229,7 @@ const Index = () => {
               defaultTheme={theme}
               glassActive={!!bg.url}
               glassOpacity={bg.glass}
-              defaultBreakWithSocial={breakWithSocial}
+              
             />
             <p className="text-center text-xs text-muted-foreground/80">
               copyright©all rights reserved by attayaarkarna12@gmail.com
