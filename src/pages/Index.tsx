@@ -162,8 +162,8 @@ const Index = () => {
     <div
       className="min-h-screen bg-background flex flex-col relative"
       style={{ "--nav-h": "72px" } as React.CSSProperties}
-      data-social-open={socialOpen ? "true" : undefined}
     >
+
       {/* Background */}
       {bg.url && bg.kind === "video" && (
         <video
