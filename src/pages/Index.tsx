@@ -16,7 +16,7 @@ import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileAIChat } from "@/components/MobileAIChat";
-import { SocialBreakPanel } from "@/components/SocialBreakPanel";
+
 
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
