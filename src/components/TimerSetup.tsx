@@ -178,7 +178,3 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
     </div>
   );
 }
-      )}
-    </div>
-  );
-}
