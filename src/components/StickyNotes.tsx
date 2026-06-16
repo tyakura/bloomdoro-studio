@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText, Trash2, Instagram, Youtube, Music2, Facebook, Linkedin, Share2 } from "lucide-react";
-import { openSocialPopup, SocialPlatform } from "@/lib/socialPopup";
+import { Plus, X, GripVertical, StickyNote as StickyIcon, Image as ImageIcon, Sparkles, Send, Upload, Loader2, Link as LinkIcon, MessageSquare, Search, Code2, Copy, Check, Paperclip, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,7 +79,6 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
   const { t } = useLang();
   const [notes, setNotes] = useState<AnyNote[]>(() => loadJSON<AnyNote[]>(NOTES_KEY, []));
   const [menuOpen, setMenuOpen] = useState(false);
-  const [socialOpen, setSocialOpen] = useState(false);
   const [creating, setCreating] = useState<NoteType | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
@@ -241,13 +239,6 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
     return () => window.removeEventListener("pointerdown", onDocDown);
   }, []);
 
-  const SOCIAL_FAB: { id: SocialPlatform; icon: any; color: string }[] = [
-    { id: "instagram", icon: Instagram, color: "#e1306c" },
-    { id: "tiktok", icon: Music2, color: "#000000" },
-    { id: "youtube", icon: Youtube, color: "#ff0000" },
-    { id: "facebook", icon: Facebook, color: "#1877f2" },
-    { id: "linkedin", icon: Linkedin, color: "#0a66c2" },
-  ];
 
   return (
     <>
@@ -286,24 +277,6 @@ export function StickyNotes({ onTalkWithAI }: { onTalkWithAI?: () => void } = {}
           <FabItem icon={StickyIcon} label={t("sticky_note")} onClick={() => { setCreating("sticky"); setMenuOpen(false); }} />
           <FabItem icon={ImageIcon} label={t("media")} onClick={() => { setCreating("media"); setMenuOpen(false); }} />
           <FabItem icon={Sparkles} label={t("talk_with_ai")} badge={t("new_badge")} onClick={() => { if (onTalkWithAI) onTalkWithAI(); else addAiNote(); setMenuOpen(false); }} />
-          <FabItem icon={Share2} label={t("social_label")} onClick={() => setSocialOpen(o => !o)} />
-          {socialOpen && (
-            <div className="flex gap-1.5 pr-1 pb-1 animate-in fade-in slide-in-from-right-2">
-              {SOCIAL_FAB.map(({ id, icon: Icon, color }) => (
-                <button
-                  key={id}
-                  onClick={() => { openSocialPopup(id); setSocialOpen(false); setMenuOpen(false); }}
-                  title={t("break_with_social_tip")}
-                  aria-label={t("break_with_social_tip")}
-                  className="w-9 h-9 rounded-full bg-card border border-border shadow-md flex items-center justify-center transition-all hover:scale-110 hover:text-white"
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
-                >
-                  <Icon className="w-4 h-4" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       )}
 

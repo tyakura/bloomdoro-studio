@@ -16,7 +16,7 @@ import { EasterEggBackground } from "@/components/EasterEggBackground";
 import { ChatHistory } from "@/components/ChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileAIChat } from "@/components/MobileAIChat";
-import { SocialBreakPanel } from "@/components/SocialBreakPanel";
+
 
 import { useLang } from "@/lib/i18n";
 import { loadJSON, saveJSON } from "@/lib/persist";
@@ -30,7 +30,6 @@ type SessionPhase = "setup" | "focus" | "break" | "complete";
 interface BgState { url: string | null; kind: BgKind; overlay: number; glass: number; muted: boolean; }
 
 const BG_KEY = "bloomdoro_bg";
-const BREAK_SOCIAL_KEY = "bloomdoro_break_social";
 
 const Index = () => {
   const { t } = useLang();
@@ -40,7 +39,7 @@ const Index = () => {
   const [customMinutes, setCustomMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(0);
   const [repeatMode, setRepeatMode] = useState(false);
-  const [breakWithSocial, setBreakWithSocial] = useState<boolean>(() => loadJSON(BREAK_SOCIAL_KEY, false));
+  
   const [cycleCount, setCycleCount] = useState(0);
   const [theme, setTheme] = useState<TimerTheme>("flower");
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
@@ -52,7 +51,7 @@ const Index = () => {
   const [bg, setBg] = useState<BgState>(() => loadJSON<BgState>(BG_KEY, { url: null, kind: "image", overlay: 70, glass: 40, muted: true }));
   const [historyOpen, setHistoryOpen] = useState(false);
   const [mobileAIOpen, setMobileAIOpen] = useState(false);
-  const [socialOpen, setSocialOpen] = useState(false);
+  
   const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   const musicStopRef = useRef<(() => void) | null>(null);
   const completionHandledRef = useRef(false);
@@ -63,7 +62,7 @@ const Index = () => {
   useEffect(() => { saveJSON(BG_KEY, bg); }, [bg]);
   useEffect(() => { saveJSON("bloomdoro_garden", gardenFlowers); }, [gardenFlowers]);
   useEffect(() => { saveJSON("bloomdoro_sessions", sessions); }, [sessions]);
-  useEffect(() => { saveJSON(BREAK_SOCIAL_KEY, breakWithSocial); }, [breakWithSocial]);
+  
 
   // Profile load
   useEffect(() => {
@@ -86,17 +85,10 @@ const Index = () => {
     return () => clearInterval(id);
   }, [repeatMode, phase, timer.status]);
 
-  // Auto-open social on break
-  useEffect(() => {
-    if (phase === "break" && breakWithSocial) setSocialOpen(true);
-    if (phase !== "break") setSocialOpen(false);
-  }, [phase, breakWithSocial]);
-
-  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean, withSocial: boolean) => {
+  const handleStart = useCallback((minutes: number, selectedTheme: TimerTheme, breakMins: number, repeat: boolean) => {
     setCustomMinutes(minutes);
     setBreakMinutes(breakMins);
     setRepeatMode(repeat);
-    setBreakWithSocial(withSocial);
     setCycleCount(0);
     setRepeatElapsed(0);
     setTheme(selectedTheme);
@@ -170,8 +162,8 @@ const Index = () => {
     <div
       className="min-h-screen bg-background flex flex-col relative"
       style={{ "--nav-h": "72px" } as React.CSSProperties}
-      data-social-open={socialOpen ? "true" : undefined}
     >
+
       {/* Background */}
       {bg.url && bg.kind === "video" && (
         <video
@@ -202,8 +194,8 @@ const Index = () => {
       {/* Shrink wrapper: when social panel open, slide & scale content left (desktop only) */}
       <div
         className="flex-1 flex flex-col transition-transform duration-300 ease-out origin-top-left"
-        style={socialOpen && !isMobile ? { transform: "translateX(-8%) scale(0.85)" } : undefined}
       >
+
       {/* Header */}
       <header data-app-header className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-5xl w-full mx-auto relative z-[120]">
         <BloomdoroLogo />
@@ -237,7 +229,7 @@ const Index = () => {
               defaultTheme={theme}
               glassActive={!!bg.url}
               glassOpacity={bg.glass}
-              defaultBreakWithSocial={breakWithSocial}
+              
             />
             <p className="text-center text-xs text-muted-foreground/80">
               copyright©all rights reserved by attayaarkarna12@gmail.com
@@ -355,7 +347,7 @@ const Index = () => {
         />
       )}
 
-      {socialOpen && <SocialBreakPanel onClose={() => setSocialOpen(false)} />}
+      
 
       {settingsOpen && (
         <SettingsModal

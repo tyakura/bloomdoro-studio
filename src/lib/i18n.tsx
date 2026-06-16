@@ -31,8 +31,6 @@ export const T: Dict = {
   repeat: { id: "Repeat", en: "Repeat", ar: "تكرار", ja: "リピート", zh: "重复" },
   on: { id: "ON", en: "ON", ar: "تشغيل", ja: "オン", zh: "开" },
   off: { id: "OFF", en: "OFF", ar: "إيقاف", ja: "オフ", zh: "关" },
-  break_social_tip: { id: "Panel medsos otomatis terbuka saat istirahat", en: "Social panel auto-opens during break", ar: "تفتح لوحة التواصل تلقائيًا أثناء الاستراحة", ja: "休憩中にSNSパネルが自動で開きます", zh: "休息时社交面板自动打开" },
-  break_with_social: { id: "Istirahat dengan medsos", en: "Break with social media", ar: "استراحة مع التواصل", ja: "SNSと一緒に休憩", zh: "用社交媒体休息" },
 
   // Timer running
   focus_session: { id: "Sesi Fokus", en: "Focus Session", ar: "جلسة تركيز", ja: "集中セッション", zh: "专注会话" },
@@ -124,11 +122,11 @@ export const T: Dict = {
     zh: "什么是 Bloomdoro？",
   },
   guide_intro_body: {
-    id: "Bloomdoro adalah aplikasi Pomodoro yang membantumu fokus lewat siklus kerja dan istirahat singkat. Setiap sesi fokus yang selesai menumbuhkan bunga atau menerbangkan roket — dan mengisi Garden-mu. Tambahkan musik, ambient sound, sticky notes, media, AI pendamping, dan saat istirahat kamu bisa nyalakan panel medsos sebagai jeda santai. Semua tersinkron jika kamu login.",
-    en: "Bloomdoro is a Pomodoro app that helps you focus through short cycles of work and rest. Every completed focus session grows a flower or launches a rocket — and fills your Garden. Add music, ambient sounds, sticky notes, media, an AI companion, and during breaks you can toggle the social panel for a relaxed pause. Everything syncs when you sign in.",
-    ar: "Bloomdoro هو تطبيق بومودورو يساعدك على التركيز عبر دورات قصيرة من العمل والراحة. كل جلسة مكتملة تُنمي زهرة أو تُطلق صاروخًا وتملأ حديقتك. أضف الموسيقى، الأصوات، الملاحظات، الوسائط، ورفيق الذكاء الاصطناعي. أثناء الاستراحة يمكنك تشغيل لوحة التواصل الاجتماعي.",
-    ja: "Bloomdoroは、短い作業と休憩のサイクルで集中をサポートするポモドーロアプリです。完了したセッションごとに花が咲き、ロケットが飛び、ガーデンが満たされます。音楽、環境音、付箋、メディア、AIコンパニオン、そして休憩中はSNSパネルも切り替え可能。ログインすればすべて同期されます。",
-    zh: "Bloomdoro 是一款帮助你通过短暂的工作与休息周期集中注意力的番茄钟应用。每完成一次专注会话都会生长一朵花或发射一枚火箭，并填满你的花园。可添加音乐、环境声、便签、媒体和 AI 伙伴；休息时还可打开社交面板放松。登录后全部同步。",
+    id: "Bloomdoro adalah aplikasi Pomodoro yang membantumu fokus lewat siklus kerja dan istirahat singkat. Setiap sesi fokus yang selesai menumbuhkan bunga atau menerbangkan roket — dan mengisi Garden-mu. Tambahkan musik, ambient sound, sticky notes, media, dan AI pendamping. Semua tersinkron jika kamu login.",
+    en: "Bloomdoro is a Pomodoro app that helps you focus through short cycles of work and rest. Every completed focus session grows a flower or launches a rocket — and fills your Garden. Add music, ambient sounds, sticky notes, media, and an AI companion. Everything syncs when you sign in.",
+    ar: "Bloomdoro هو تطبيق بومودورو يساعدك على التركيز عبر دورات قصيرة من العمل والراحة. كل جلسة مكتملة تُنمي زهرة أو تُطلق صاروخًا وتملأ حديقتك. أضف الموسيقى، الأصوات، الملاحظات، الوسائط، ورفيق الذكاء الاصطناعي.",
+    ja: "Bloomdoroは、短い作業と休憩のサイクルで集中をサポートするポモドーロアプリです。完了したセッションごとに花が咲き、ロケットが飛び、ガーデンが満たされます。音楽、環境音、付箋、メディア、AIコンパニオンを追加できます。ログインすればすべて同期されます。",
+    zh: "Bloomdoro 是一款帮助你通过短暂的工作与休息周期集中注意力的番茄钟应用。每完成一次专注会话都会生长一朵花或发射一枚火箭，并填满你的花园。可添加音乐、环境声、便签、媒体和 AI 伙伴。登录后全部同步。",
   },
   contact_suggest: {
     id: "Hubungi jika ada saran: attayaarkarna12@gmail.com",
@@ -145,12 +143,6 @@ export const T: Dict = {
     zh: "彩蛋藏在这里…",
   },
 
-  // Social
-  social_open_original: { id: "Buka aplikasi asli", en: "Open original app", ar: "افتح التطبيق الأصلي", ja: "本物のアプリを開く", zh: "打开原应用" },
-  social_panel: { id: "Medsos Istirahat", en: "Break Social", ar: "تواصل الاستراحة", ja: "休憩SNS", zh: "休息社交" },
-  toggle_social: { id: "Aktifkan medsos saat istirahat", en: "Enable social during break", ar: "تفعيل التواصل أثناء الاستراحة", ja: "休憩中にSNSを有効化", zh: "休息时启用社交" },
-  break_with_social_tip: { id: "Istirahat dengan Sosmed", en: "Break with social media", ar: "استراحة مع وسائل التواصل", ja: "SNSで休憩", zh: "用社交媒体休息" },
-  social_label: { id: "Sosmed", en: "Social", ar: "تواصل", ja: "SNS", zh: "社交" },
 
   // Mobile header
   focus_short: { id: "Fokus", en: "Focus", ar: "تركيز", ja: "集中", zh: "专注" },
@@ -170,9 +162,6 @@ export const T: Dict = {
   fmt_md: { id: "Markdown (.md)", en: "Markdown (.md)", ar: "ماركداون (.md)", ja: "Markdown (.md)", zh: "Markdown (.md)" },
   fmt_html: { id: "HTML (.html)", en: "HTML (.html)", ar: "HTML (.html)", ja: "HTML (.html)", zh: "HTML (.html)" },
 
-  // TimerSetup additions
-  medsos_on: { id: "Medsos ON", en: "Social ON", ar: "تواصل مفعل", ja: "SNS オン", zh: "社交 开" },
-  medsos_off: { id: "Medsos OFF", en: "Social OFF", ar: "تواصل مغلق", ja: "SNS オフ", zh: "社交 关" },
 
   // Sticky / media creators
   new_sticky: { id: "Sticky Note Baru", en: "New Sticky Note", ar: "ملاحظة جديدة", ja: "新しい付箋", zh: "新便签" },
@@ -203,7 +192,7 @@ export const T: Dict = {
   faq_q5: { id: "Cara menambah musik & ambient?", en: "How to add music & ambient?", ar: "كيف أضيف موسيقى؟", ja: "音楽と環境音の追加方法は？", zh: "如何添加音乐和环境声？" },
   faq_a5: { id: "Profil → Settings → Upload musik atau tempel link YouTube.", en: "Profile → Settings → Upload music or paste a YouTube link.", ar: "الملف الشخصي → الإعدادات → موسيقى.", ja: "プロフィール → 設定 → 音楽。", zh: "个人资料 → 设置 → 音乐。" },
   faq_q6: { id: "Apa isi tombol + di pojok kanan bawah?", en: "What's inside the + button?", ar: "ما داخل زر +؟", ja: "+ボタンの中身は？", zh: "+ 按钮里有什么？" },
-  faq_a6: { id: "Sticky Note, Media, Talk with AI, dan pintasan Sosmed.", en: "Sticky Note, Media, Talk with AI, and Social shortcuts.", ar: "ملاحظات، وسائط، AI، تواصل.", ja: "付箋、メディア、AI、SNSショートカット。", zh: "便签、媒体、AI 与社交快捷方式。" },
+  faq_a6: { id: "Sticky Note, Media, dan Talk with AI.", en: "Sticky Note, Media, and Talk with AI.", ar: "ملاحظات، وسائط، وAI.", ja: "付箋、メディア、AI。", zh: "便签、媒体、AI。" },
   faq_q7: { id: "Cara membuat sticky note?", en: "How to make a sticky note?", ar: "كيف أنشئ ملاحظة؟", ja: "付箋の作り方は？", zh: "如何创建便签？" },
   faq_a7: { id: "+ → Sticky Note. Isi judul/deskripsi, pilih warna, drag ke posisinya.", en: "+ → Sticky Note. Fill title/description, pick color, drag.", ar: "+ → ملاحظة لاصقة.", ja: "+ → 付箋。", zh: "+ → 便签。" },
   faq_q8: { id: "Apa itu Media note?", en: "What is a Media note?", ar: "ما هي ملاحظة الوسائط؟", ja: "メディアノートとは？", zh: "什么是媒体便签？" },

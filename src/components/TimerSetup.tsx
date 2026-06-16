@@ -1,36 +1,27 @@
 import { useState } from "react";
-import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X, Share2, Instagram, Youtube, Music2 } from "lucide-react";
+import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/lib/i18n";
-import { openSocialPopup, SocialPlatform } from "@/lib/socialPopup";
 
 export type TimerTheme = "flower" | "rocket";
 
 interface TimerSetupProps {
-  onStart: (minutes: number, theme: TimerTheme, breakMinutes: number, repeat: boolean, breakWithSocial: boolean) => void;
+  onStart: (minutes: number, theme: TimerTheme, breakMinutes: number, repeat: boolean) => void;
   defaultTheme?: TimerTheme;
   glassActive?: boolean;
   glassOpacity?: number;
-  defaultBreakWithSocial?: boolean;
 }
 
 const PRESETS = [15, 25, 30, 45, 60];
 const BREAK_PRESETS = [5, 10, 25, 30];
 
-const SOCIAL_ICONS: { id: SocialPlatform; icon: any; color: string }[] = [
-  { id: "instagram", icon: Instagram, color: "#e1306c" },
-  { id: "tiktok", icon: Music2, color: "#000000" },
-  { id: "youtube", icon: Youtube, color: "#ff0000" },
-];
-
-export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = false, glassOpacity = 40, defaultBreakWithSocial = false }: TimerSetupProps) {
+export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = false, glassOpacity = 40 }: TimerSetupProps) {
   const { t } = useLang();
   const [minutes, setMinutes] = useState(25);
   const [theme, setTheme] = useState<TimerTheme>(defaultTheme);
   const [showBreak, setShowBreak] = useState(false);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [repeat, setRepeat] = useState(false);
-  const [breakWithSocial, setBreakWithSocial] = useState(defaultBreakWithSocial);
   const dec = () => setMinutes(m => Math.max(1, m - 5));
   const inc = () => setMinutes(m => Math.min(120, m + 5));
 
@@ -126,7 +117,7 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
         )}
 
         <Button
-          onClick={() => onStart(minutes, theme, showBreak ? breakMinutes : 0, repeat, showBreak ? breakWithSocial : false)}
+          onClick={() => onStart(minutes, theme, showBreak ? breakMinutes : 0, repeat)}
           className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
           size="icon"
         >
@@ -148,25 +139,13 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             <span className="px-4 py-1.5 rounded-full bg-badge-bg text-badge-text font-display font-semibold text-sm tracking-wide uppercase inline-flex items-center gap-1.5">
               <Coffee className="w-3.5 h-3.5" /> {t("break_time")}
             </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setBreakWithSocial(v => !v)}
-                title={breakWithSocial ? t("medsos_on") : t("medsos_off")}
-                aria-label="Toggle social"
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                  breakWithSocial ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-secondary text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => { setShowBreak(false); setRepeat(false); setBreakWithSocial(false); }}
-                className="text-muted-foreground hover:text-foreground p-1"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => { setShowBreak(false); setRepeat(false); }}
+              className="text-muted-foreground hover:text-foreground p-1"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           <div className="flex items-center gap-6">
@@ -194,30 +173,6 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             ))}
           </div>
 
-          {/* Social shortcut row */}
-          <div className="flex items-center gap-2 pt-1">
-            {SOCIAL_ICONS.map(({ id, icon: Icon, color }) => (
-              <button
-                key={id}
-                onClick={() => openSocialPopup(id)}
-                title={t("break_with_social_tip")}
-                aria-label={t("break_with_social_tip")}
-                className="w-9 h-9 rounded-full bg-secondary text-muted-foreground hover:text-white transition-all hover:scale-110 flex items-center justify-center"
-                style={{ ['--hover-color' as any]: color }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
-              >
-                <Icon className="w-4 h-4" />
-              </button>
-            ))}
-          </div>
-
-          {breakWithSocial && (
-            <p className="text-[11px] text-muted-foreground text-center inline-flex items-center gap-1">
-              <Share2 className="w-3 h-3" />
-              {t("break_social_tip")}
-            </p>
-          )}
         </div>
       )}
     </div>
