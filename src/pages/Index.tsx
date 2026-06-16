@@ -62,7 +62,7 @@ const Index = () => {
   useEffect(() => { saveJSON(BG_KEY, bg); }, [bg]);
   useEffect(() => { saveJSON("bloomdoro_garden", gardenFlowers); }, [gardenFlowers]);
   useEffect(() => { saveJSON("bloomdoro_sessions", sessions); }, [sessions]);
-  useEffect(() => { saveJSON(BREAK_SOCIAL_KEY, breakWithSocial); }, [breakWithSocial]);
+  
 
   // Profile load
   useEffect(() => {
