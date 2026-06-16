@@ -143,12 +143,6 @@ export const T: Dict = {
     zh: "彩蛋藏在这里…",
   },
 
-  // Social
-  social_open_original: { id: "Buka aplikasi asli", en: "Open original app", ar: "افتح التطبيق الأصلي", ja: "本物のアプリを開く", zh: "打开原应用" },
-  social_panel: { id: "Medsos Istirahat", en: "Break Social", ar: "تواصل الاستراحة", ja: "休憩SNS", zh: "休息社交" },
-  toggle_social: { id: "Aktifkan medsos saat istirahat", en: "Enable social during break", ar: "تفعيل التواصل أثناء الاستراحة", ja: "休憩中にSNSを有効化", zh: "休息时启用社交" },
-  break_with_social_tip: { id: "Istirahat dengan Sosmed", en: "Break with social media", ar: "استراحة مع وسائل التواصل", ja: "SNSで休憩", zh: "用社交媒体休息" },
-  social_label: { id: "Sosmed", en: "Social", ar: "تواصل", ja: "SNS", zh: "社交" },
 
   // Mobile header
   focus_short: { id: "Fokus", en: "Focus", ar: "تركيز", ja: "集中", zh: "专注" },
