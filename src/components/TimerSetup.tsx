@@ -1,36 +1,27 @@
 import { useState } from "react";
-import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X, Share2, Instagram, Youtube, Music2 } from "lucide-react";
+import { Minus, Plus, Play, Flower2, Rocket, Coffee, Repeat, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/lib/i18n";
-import { openSocialPopup, SocialPlatform } from "@/lib/socialPopup";
 
 export type TimerTheme = "flower" | "rocket";
 
 interface TimerSetupProps {
-  onStart: (minutes: number, theme: TimerTheme, breakMinutes: number, repeat: boolean, breakWithSocial: boolean) => void;
+  onStart: (minutes: number, theme: TimerTheme, breakMinutes: number, repeat: boolean) => void;
   defaultTheme?: TimerTheme;
   glassActive?: boolean;
   glassOpacity?: number;
-  defaultBreakWithSocial?: boolean;
 }
 
 const PRESETS = [15, 25, 30, 45, 60];
 const BREAK_PRESETS = [5, 10, 25, 30];
 
-const SOCIAL_ICONS: { id: SocialPlatform; icon: any; color: string }[] = [
-  { id: "instagram", icon: Instagram, color: "#e1306c" },
-  { id: "tiktok", icon: Music2, color: "#000000" },
-  { id: "youtube", icon: Youtube, color: "#ff0000" },
-];
-
-export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = false, glassOpacity = 40, defaultBreakWithSocial = false }: TimerSetupProps) {
+export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = false, glassOpacity = 40 }: TimerSetupProps) {
   const { t } = useLang();
   const [minutes, setMinutes] = useState(25);
   const [theme, setTheme] = useState<TimerTheme>(defaultTheme);
   const [showBreak, setShowBreak] = useState(false);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [repeat, setRepeat] = useState(false);
-  const [breakWithSocial, setBreakWithSocial] = useState(defaultBreakWithSocial);
   const dec = () => setMinutes(m => Math.max(1, m - 5));
   const inc = () => setMinutes(m => Math.min(120, m + 5));
 
