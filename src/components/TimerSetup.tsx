@@ -173,31 +173,11 @@ export function TimerSetup({ onStart, defaultTheme = "flower", glassActive = fal
             ))}
           </div>
 
-          {/* Social shortcut row */}
-          <div className="flex items-center gap-2 pt-1">
-            {SOCIAL_ICONS.map(({ id, icon: Icon, color }) => (
-              <button
-                key={id}
-                onClick={() => openSocialPopup(id)}
-                title={t("break_with_social_tip")}
-                aria-label={t("break_with_social_tip")}
-                className="w-9 h-9 rounded-full bg-secondary text-muted-foreground hover:text-white transition-all hover:scale-110 flex items-center justify-center"
-                style={{ ['--hover-color' as any]: color }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
-              >
-                <Icon className="w-4 h-4" />
-              </button>
-            ))}
-          </div>
-
-          {breakWithSocial && (
-            <p className="text-[11px] text-muted-foreground text-center inline-flex items-center gap-1">
-              <Share2 className="w-3 h-3" />
-              {t("break_social_tip")}
-            </p>
-          )}
         </div>
+      )}
+    </div>
+  );
+}
       )}
     </div>
   );
